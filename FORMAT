@@ -1,0 +1,49 @@
+Frame header
+------------
+
+Frame headers come in 4 variants. Fixed bits (hardcoded 1/0s)
+determine which variant the header belongs to.
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |1|               |l s|                                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Hardcoded values in this variant:
+  lsize            = 0
+  packet count     = 1
+  base packet size = 3 if l s == 3 else 2
+  base header size = 6
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |0| | lsize | | packet count  |0 0|                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Hardcoded values in this variant:
+  base packet size = 0
+  base header size = 21
+
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |0| | lsize | | packet count  |0 1|base packet siz|     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Hardcoded values in this variant:
+  base header size = 29
+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       |0| | lsize | | packet count  |1 0|   base packet size  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Hardcoded values in this variant:
+  base header size = 32
+
+Variable packet lengths are `lsize`-bit long and are placed immediately
+after the the "base header", the length of which is defined by `base
+header size`. There are `packet count` lengths. To get complete packet
+lengths add `base packet size` to each length.
+
+Total frame size is the sum of all packet lengths and `base header size`.
