@@ -1,5 +1,5 @@
 #!/usr/bin/env escript
--record(frame_header, {vlenbits, npkt, basepktsize, headersize, flags}).
+-record(frame_header, {headersize, flags, npkt, basepktsize, vlenbits}).
 
 print_frame_header(FH) ->
 	io:format("headersize ~p flags ~p npkt ~p basepktsize ~p vlenbits ~p~n", [
