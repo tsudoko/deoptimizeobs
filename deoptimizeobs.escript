@@ -10,12 +10,13 @@ print_frame_header(FH) ->
 		FH#frame_header.vlenbits]).
 
 read_frame_header(<<Flags0:4, 1:1, Flags1:1, _:7, BasePktSizeSel:2, _/bits>>) ->
+	<<Flags:6>> = <<Flags0:4, 0:1, Flags1:1>>,
 	#frame_header{
 		vlenbits = 0,
 		npkt = 1,
 		basepktsize = if BasePktSizeSel == 3 -> 3; true -> 2 end,
 		headersize = 6,
-		flags = <<Flags0:4, 0:1, Flags1:1>>};
+		flags = Flags};
 read_frame_header(<<Flags:6, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Rest/bits>>) ->
 	HeaderSize = case BasePktSizeSel of
 		0 -> 21;
