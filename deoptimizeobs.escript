@@ -12,7 +12,7 @@ print_frame_header(FH) ->
 		FH#frame_header.vlenbits]).
 
 read_frame_header(<<Flags0:4, Bos:1, Flags1:1, _:7, BasePktSizeSel:2, _/bits>>) when Bos =:= 1 ->
-	<<Flags:6>> = <<Flags0:4, Bos:1, Flags1:1>>,
+	Flags = <<Flags0:4, Bos:1, Flags1:1>>,
 	#frame_header{
 		vlenbits = 0,
 		npkt = 1,
@@ -27,7 +27,7 @@ read_frame_header(<<Flags:6, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Rest/bit
 		% 3 is undefined
 	end,
 	<<BasePktSize:(HeaderSize-21), _/bits>> = Rest,
-	#frame_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize, headersize=HeaderSize, flags=Flags}.
+	#frame_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize, headersize=HeaderSize, flags= <<Flags:6>>}.
 
 read_packet_lengths(H, Data) ->
 	read_packet_lengths(H, Data, H#frame_header.npkt, []).
