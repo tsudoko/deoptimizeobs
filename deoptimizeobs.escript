@@ -97,13 +97,21 @@ parse_info({H, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
 	io:format("info header: ~p~n", [{Ver, Channels, Rate, Blocksizes, End}]),
 	{Ver, Channels, Rate, Blocksizes}.
 
+parse_setup({H, _, <<_:2, HeaderNum:6, Rest/bytes>>}) ->
+	if
+		HeaderNum =:= 0 -> {Rest};
+		HeaderNum > 5 -> error({badsetup, {badindex, HeaderNum}});
+		true ->
+			error({unimplemented, "predefined setup headers not implemented yet"})
+	end.
+
 read_oor(Data) ->
 	read_oor(Data, []).
 read_oor(<<>>, Frames) ->
 	Rframes = lists:reverse(Frames),
 	[Info|Rest] = Rframes,
 	[Setup|Sound] = Rest,
-	{{parse_info(Info), Info}, Setup, Sound};
+	{{parse_info(Info), Info}, {parse_setup(Setup), Setup}, Sound};
 read_oor(Data, Frames) ->
 	{F, NextData} = read_frame(Data),
 	print_frame(F),
