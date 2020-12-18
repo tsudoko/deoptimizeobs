@@ -64,10 +64,35 @@ read_frame(Data) ->
 	% TODO: include actual packets?
 	{{H, Pktlens, Body}, NextFrame}.
 
+parse_info({_, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
+	{Rate, Blocksizes, End} = if
+		RateSel < 3 ->
+			<<Bs1:4, Bs2:4, E:1>> = Rest,
+			{11025 bsl RateSel, {Bs1, Bs2}, E};
+		true ->
+			<<RateSel2:8, Rest2/bits>> = Rest,
+			<<Bs1:4, Bs2:4, E:1>> = Rest2,
+			R = case RateSel2 of
+				3 -> 32000;
+				4 -> 48000;
+				5 -> 96000
+			end,
+			{R, {Bs1, Bs2}, E}
+	end,
+	case End of
+		1 -> ok;
+		0 -> erlang:error(badinfo)
+	end,
+	io:format("info header: ~p~n", [{Ver, Channels, Rate, Blocksizes, End}]),
+	{Ver, Channels, Rate, Blocksizes}.
+
 read_oor(Data) ->
 	read_oor(Data, []).
 read_oor(<<>>, Frames) ->
-	lists:reverse(Frames);
+	Rframes = lists:reverse(Frames),
+	[Info|Rest] = Rframes,
+	[Setup|Sound] = Rest,
+	{{parse_info(Info), Info}, Setup, Sound};
 read_oor(Data, Frames) ->
 	{F, NextData} = read_frame(Data),
 	print_frame(F),
