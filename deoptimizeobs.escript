@@ -1,6 +1,8 @@
 #!/usr/bin/env escript
 -record(frame_header, {headersize, flags, npkt, basepktsize, vlenbits}).
 
+% flags: ??? (unseen), ??? (unseen), ??? (unseen), ??? (used for something), bos, eos
+
 print_frame_header(FH) ->
 	io:format("headersize ~p flags ~p npkt ~p basepktsize ~p vlenbits ~p~n", [
 		FH#frame_header.headersize,
@@ -36,6 +38,9 @@ read_packet_lengths(H, Data, Npkt, Lengths) ->
 	<<Len:Bits, Rest/bits>> = Data,
 	read_packet_lengths(H, Rest, Npkt-1, [H#frame_header.basepktsize+Len | Lengths]).
 
+print_frame({H, Pktlens, Body}) ->
+	io:format("{~p,~w,~W}~n", [H, Pktlens, Body, 5]).
+
 read_frame(Data) ->
 	H = read_frame_header(Data),
 	print_frame_header(H),
@@ -43,21 +48,21 @@ read_frame(Data) ->
 	HSize = H#frame_header.headersize,
 	<<_:(HSize), Data_/bits>> = Data,
 	{Pktlens, _} = read_packet_lengths(H, Data_),
-	Skip = lists:sum(Pktlens),
+	BodyLen = lists:sum(Pktlens),
 
 	VlenTotalSize = H#frame_header.vlenbits*H#frame_header.npkt,
 	% TODO: figure out where the 7 comes from, ideally avoid doing two
 	%       different splits altogether if possible
-	NextBodyOffset = ((HSize + 7 + VlenTotalSize) div 8) * 8,
-	<<_:(NextBodyOffset+Skip*8), NextFrame/bits>> = Data,
-	io:format("skip ~p bits~n", [NextBodyOffset+Skip*8]),
+	BodyOffset = ((HSize + 7 + VlenTotalSize) div 8) * 8,
+	%<<_:(BodyOffset+BodyLen*8), NextFrame/bits>> = Data,
+	<<_:BodyOffset, Body:(BodyLen*8)/bits, NextFrame/bits>> = Data,
 
-	% next body offset from original code: (vlenbits*npkt + 7 + headersize) / 8
-	% next body len: all packet sizes summed up (Skip here)
+	% body offset from original code: (vlenbits*npkt + 7 + headersize) / 8
+	% body len: all packet sizes summed up (Skip here)
 
 	io:format("~W~n", [NextFrame, 5]),
 	% TODO: include actual packets?
-	{{H, Pktlens}, NextFrame}.
+	{{H, Pktlens, Body}, NextFrame}.
 
 read_oor(Data) ->
 	read_oor(Data, []).
@@ -65,8 +70,9 @@ read_oor(<<>>, Frames) ->
 	lists:reverse(Frames);
 read_oor(Data, Frames) ->
 	{F, NextData} = read_frame(Data),
+	print_frame(F),
 	read_oor(NextData, [F|Frames]).
 
 main([Filename]) ->
 	{ok, Data} = file:read_file(Filename),
-	io:format("~p~n", [read_oor(Data)]).
+	read_oor(Data).
