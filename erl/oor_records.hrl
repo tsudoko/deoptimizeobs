@@ -1,0 +1,1 @@
+-record(frame_header, {headersize, flags, npkt, basepktsize, vlenbits}).
