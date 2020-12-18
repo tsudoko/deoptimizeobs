@@ -38,5 +38,6 @@ parse_setup({H, _, <<_:2, HeaderNum:6, Rest/bytes>>}) ->
 		HeaderNum =:= 0 -> {Rest};
 		HeaderNum > 5 -> error({badsetup, {badindex, HeaderNum}});
 		true ->
-			error({unimplemented, "predefined setup headers not implemented yet"})
+			{ok, Header} = file:read_file(io_lib:format("data/setup~2..0w.hdr", [HeaderNum])),
+			{Header}
 	end.
