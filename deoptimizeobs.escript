@@ -3,6 +3,9 @@
 
 % flags: ??? (unseen), ??? (unseen), ??? (unseen), ??? (used for something), bos, eos
 
+is_bos(#frame_header{flags = <<_:4, Bos:1, _:1>>}) -> Bos.
+is_eos(#frame_header{flags = <<_:5, Eos:1>>}) -> Eos.
+
 print_frame_header(FH) ->
 	io:format("headersize ~p flags ~p npkt ~p basepktsize ~p vlenbits ~p~n", [
 		FH#frame_header.headersize,
@@ -64,7 +67,15 @@ read_frame(Data) ->
 	% TODO: include actual packets?
 	{{H, Pktlens, Body}, NextFrame}.
 
-parse_info({_, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
+parse_info({H, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
+	case is_bos(H) of
+		1 -> ok;
+		0 -> error({badinfo, notbos})
+	end,
+	case Ver of
+		0 -> ok;
+		_ -> error({badinfo, {badver, Ver}})
+	end,
 	{Rate, Blocksizes, End} = if
 		RateSel < 3 ->
 			<<Bs1:4, Bs2:4, E:1>> = Rest,
@@ -81,7 +92,7 @@ parse_info({_, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
 	end,
 	case End of
 		1 -> ok;
-		0 -> erlang:error(badinfo)
+		0 -> error({badinfo, endzero})
 	end,
 	io:format("info header: ~p~n", [{Ver, Channels, Rate, Blocksizes, End}]),
 	{Ver, Channels, Rate, Blocksizes}.
