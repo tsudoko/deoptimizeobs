@@ -36,7 +36,6 @@ parse_info({H, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
 parse_setup({H, _, <<_:2, HeaderNum:6, Rest/bytes>>}) ->
 	if
 		HeaderNum =:= 0 -> {Rest};
-		HeaderNum > 5 -> error({badsetup, {badindex, HeaderNum}});
 		true ->
 			{ok, Header} = file:read_file(io_lib:format("data/setup~2..0w.hdr", [HeaderNum])),
 			{Header}
