@@ -34,6 +34,7 @@ parse_info({H, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
 	{Ver, Channels, Rate, Blocksizes}.
 
 parse_setup({H, _, <<_:2, HeaderNum:6, Rest/bytes>>}) ->
+	io:format("setup header ~w~s~n", [HeaderNum, if HeaderNum =:= 0 -> " (inline)"; true -> "" end]),
 	if
 		HeaderNum =:= 0 -> {Rest};
 		true ->
