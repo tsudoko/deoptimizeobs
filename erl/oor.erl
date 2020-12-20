@@ -13,6 +13,15 @@ read_oor(Data, Frames) ->
 	oor_framing:print_frame(F),
 	read_oor(NextData, [F|Frames]).
 
+segment_pktlens(Pktlens) ->
+	segment_pktlens(Pktlens, []).
+segment_pktlens([Len|Rest], Done) when Len > 255; Len =:= 255, Rest =/= [] ->
+	segment_pktlens([Len-255|Rest], [255|Done]);
+segment_pktlens([Len|Rest], Done) ->
+	segment_pktlens(Rest, [Len|Done]);
+segment_pktlens([], Done) ->
+	lists:reverse(Done).
+
 chop_binary(Lens, Bin) ->
 	chop_binary(Lens, Bin, []).
 chop_binary([L|Lens], Bin, Done) ->
@@ -34,8 +43,8 @@ to_ogg_(Device, [{_, Pktlens, Body}|Rest], PageNum) ->
 		[] -> eos;
 		_ -> none
 	end,
-	% TODO: handle packets with length≥255
-	ok = file:write(Device, ogg_framing:dump_page(Flags, 0, 0, PageNum, chop_binary(Pktlens, Body))),
+	Seglens = segment_pktlens(Pktlens),
+	ok = file:write(Device, ogg_framing:dump_page(Flags, 0, 0, PageNum, chop_binary(Seglens, Body))),
 	to_ogg_(Device, Rest, PageNum+1);
 to_ogg_(_, [], _) ->
 	ok.
