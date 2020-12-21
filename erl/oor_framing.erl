@@ -1,14 +1,21 @@
 -module(oor_framing).
--export([is_bos/1, is_eos/1]).
+-export([flaglist/1, is_bos/1, is_eos/1]).
 -export([print_frame_header/1]).
 -export([print_frame/1, read_frame/1]).
 
 -include("oor_records.hrl").
 
-% flags: ??? (unseen), ??? (unseen), ??? (unseen), ??? (used for something), bos, eos
-
 is_bos(#frame_header{flags = <<_:4, Bos:1, _:1>>}) -> Bos.
 is_eos(#frame_header{flags = <<_:5, Eos:1>>}) -> Eos.
+
+flaglist(<<Rest:5/bits, 0:1>>) -> flaglist_([], Rest);
+flaglist(<<Rest:5/bits, 1:1>>) -> flaglist_([eos], Rest).
+flaglist_(L, <<Rest:4/bits, 0:1>>) -> flaglist_(L, Rest);
+flaglist_(L, <<Rest:4/bits, 1:1>>) -> flaglist_([bos|L], Rest);
+flaglist_(L, <<Rest:3/bits, 0:1>>) -> flaglist_(L, Rest);
+flaglist_(L, <<Rest:3/bits, 1:1>>) -> flaglist_([partial|L], Rest);
+flaglist_(L, <<_:2/bits, 0:1>>) -> L;
+flaglist_(L, <<_:2/bits, 1:1>>) -> [continued|L].
 
 print_frame_header(FH) ->
 	io:format("headersize ~p flags ~p npkt ~p basepktsize ~p vlenbits ~p~n", [

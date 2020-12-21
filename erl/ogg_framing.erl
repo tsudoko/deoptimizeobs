@@ -1,6 +1,9 @@
 -module(ogg_framing).
 -export([chop_packet/1, dump_page/5]).
 
+booltobit(false) -> 0;
+booltobit(true) -> 1.
+
 bitreflect8(Bin) ->
 	bitreflect8_(Bin, <<>>).
 bitreflect8_(<<A:1, B:1, C:1, D:1, E:1, F:1, G:1, H:1, Rest/bytes>>, Done) ->
@@ -27,15 +30,12 @@ chop_packet(Seg, Chopped) ->
 
 	lists:reverse([LastSeg|Chopped]).
 
-dump_page(Flag, GranulePos, SerialNum, PageCounter, Segments) ->
-	BFlag = case Flag of
-		none -> 0;
-		continued -> 1;
-		bos -> 2;
-		eos -> 4
-	end,
-
-	BeforeCRC = <<"OggS", 0, BFlag:8, GranulePos:64/little, SerialNum:32/little, PageCounter:32/little>>,
+dump_page(Flags, GranulePos, SerialNum, PageCounter, Segments) ->
+	<<BFlags>> = <<0:5,
+		(booltobit(proplists:get_bool(eos, Flags))):1,
+		(booltobit(proplists:get_bool(bos, Flags))):1,
+		(booltobit(proplists:get_bool(continued, Flags))):1>>,
+	BeforeCRC = <<"OggS", 0, BFlags:8, GranulePos:64/little, SerialNum:32/little, PageCounter:32/little>>,
 	AfterCRC = [<<(length(Segments)):8>>, [byte_size(S) || S <- Segments], Segments],
 	CRC = oggcrc([BeforeCRC, 0, 0, 0, 0, AfterCRC]),
 	[BeforeCRC, CRC, AfterCRC].
