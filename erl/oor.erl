@@ -35,7 +35,7 @@ chop_binary([], <<>>, Done) ->
 to_ogg(Device, {{Info, {IH, _, _}}, {Setup, {SH, _, _}}, Sound}) ->
 	VI = ogg_framing:chop_packet(vorbis_headers:dump_info(Info)),
 	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201220; original encoder unknown", [])),
-	VS = ogg_framing:chop_packet(<<5, "vorbis", Setup/bytes, 1>>),
+	VS = ogg_framing:chop_packet(<<5, "vorbis", Setup/bytes>>),
 	IFlags = oor_framing:flaglist(IH#frame_header.flags),
 	SFlags = oor_framing:flaglist(SH#frame_header.flags),
 	ok = file:write(Device, ogg_framing:dump_page(IFlags, 0, 0, 0, VI)),
