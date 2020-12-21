@@ -68,5 +68,4 @@ read_frame(Data) ->
 	% body len: all packet sizes summed up (Skip here)
 
 	io:format("~W~n", [NextFrame, 5]),
-	% TODO: include actual packets?
 	{{H, Pktlens, Body}, NextFrame}.
