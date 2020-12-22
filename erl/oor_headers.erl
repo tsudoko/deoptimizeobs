@@ -36,13 +36,11 @@ parse_info_unknowns(0, Rest) ->
 parse_info_unknowns(_, <<Unk1:1, Unk2:1, Unk3:7, EndGranulePos:64, Rest/bits>>) ->
 	{{Unk1, Unk2, Unk3, EndGranulePos}, Rest}.
 
-parse_setup({H, _, <<_:2, HeaderNum:6, Rest/bytes>>}) ->
-	if
-		HeaderNum =:= 0 -> Rest;
-		true ->
-			{ok, Header} = file:read_file(io_lib:format("data/setup~2..0w.hdr", [HeaderNum])),
-			Header
-	end.
+parse_setup({_, _, <<_:2, 0:6, Rest/bytes>>}) ->
+	Rest;
+parse_setup({_, _, <<_:2, HeaderNum:6>>}) ->
+	{ok, Header} = file:read_file(io_lib:format("data/setup~2..0w.hdr", [HeaderNum])),
+	Header.
 
 format_setup({_, _, <<_:2, HeaderNum:6, _/bytes>>}) ->
 	io_lib:format("~w~s", [HeaderNum, if HeaderNum =:= 0 -> " (inline)"; true -> "" end]).
