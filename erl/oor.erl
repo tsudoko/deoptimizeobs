@@ -32,19 +32,25 @@ chop_binary([L|Lens], Bin, Done) ->
 chop_binary([], <<>>, Done) ->
 	lists:reverse(Done).
 
+undefinedtozero(undefined) -> 0;
+undefinedtozero(X) -> X.
+
 to_ogg(Device, {{Info, {IH, _, _}}, {Setup, {SH, _, _}}, Sound}) ->
 	VI = ogg_framing:chop_packet(vorbis_headers:dump_info(Info)),
-	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201220; original encoder unknown", [])),
+	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201222; original encoder unknown", [])),
 	VS = ogg_framing:chop_packet(<<5, "vorbis", Setup/bytes>>),
 	IFlags = oor_framing:flaglist(IH#frame_header.flags),
+	IGranulePos = undefinedtozero(IH#frame_header.granulepos),
 	SFlags = oor_framing:flaglist(SH#frame_header.flags),
-	ok = file:write(Device, ogg_framing:dump_page(IFlags, 0, 0, 0, VI)),
-	ok = file:write(Device, ogg_framing:dump_page(SFlags, 0, 0, 1, lists:flatten([VC, VS]))),
+	SGranulePos = undefinedtozero(SH#frame_header.granulepos),
+	ok = file:write(Device, ogg_framing:dump_page(IFlags, IGranulePos, 0, 0, VI)),
+	ok = file:write(Device, ogg_framing:dump_page(SFlags, SGranulePos, 0, 1, lists:flatten([VC, VS]))),
 	to_ogg_(Device, Sound, 2).
 to_ogg_(Device, [{H, Pktlens, Body}|Rest], PageNum) ->
 	Flags = oor_framing:flaglist(H#frame_header.flags),
+	GranulePos = undefinedtozero(H#frame_header.granulepos),
 	Seglens = segment_pktlens(Pktlens),
-	ok = file:write(Device, ogg_framing:dump_page(Flags, 0, 0, PageNum, chop_binary(Seglens, Body))),
+	ok = file:write(Device, ogg_framing:dump_page(Flags, GranulePos, 0, PageNum, chop_binary(Seglens, Body))),
 	to_ogg_(Device, Rest, PageNum+1);
 to_ogg_(_, [], _) ->
 	ok.
