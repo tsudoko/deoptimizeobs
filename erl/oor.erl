@@ -15,7 +15,7 @@ read_oor(<<>>, Frames) ->
 	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup), Setup}, Sound};
 read_oor(Data, Frames) ->
 	{F, NextData} = oor_framing:read_frame(Data),
-	oor_framing:print_frame(F),
+	io:format("~s~n", [oor_framing:format_frame(F)]),
 	read_oor(NextData, [F|Frames]).
 
 segment_pktlens(Pktlens) ->

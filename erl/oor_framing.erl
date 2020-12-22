@@ -1,7 +1,7 @@
 -module(oor_framing).
 -export([flaglist/1, is_bos/1, is_eos/1]).
--export([print_frame_header/1]).
--export([print_frame/1, read_frame/1]).
+-export([format_frame_header/1]).
+-export([format_frame/1, read_frame/1]).
 
 -include("oor_records.hrl").
 
@@ -17,8 +17,8 @@ flaglist_(L, <<Rest:3/bits, 1:1>>) -> flaglist_([partial|L], Rest);
 flaglist_(L, <<_:2/bits, 0:1>>) -> L;
 flaglist_(L, <<_:2/bits, 1:1>>) -> [continued|L].
 
-print_frame_header(FH) ->
-	io:format("headersize ~p flags ~p granulepos ~p npkt ~p basepktsize ~p vlenbits ~p~n", [
+format_frame_header(FH) ->
+	io_lib:format("headersize ~p flags ~p granulepos ~p npkt ~p basepktsize ~p vlenbits ~p", [
 		FH#frame_header.headersize,
 		FH#frame_header.flags,
 		FH#frame_header.granulepos,
@@ -59,8 +59,8 @@ read_packet_lengths(H, Data, Npkt, Lengths) ->
 	<<Len:Bits, Rest/bits>> = Data,
 	read_packet_lengths(H, Rest, Npkt-1, [H#frame_header.basepktsize+Len | Lengths]).
 
-print_frame({H, Pktlens, Body}) ->
-	io:format("{~p,~w,~W}~n", [H, Pktlens, Body, 5]).
+format_frame({H, Pktlens, Body}) ->
+	io_lib:format("{~s,~w,~W}", [format_frame_header(H), Pktlens, Body, 5]).
 
 read_frame(Data) ->
 	H = read_frame_header(Data),
