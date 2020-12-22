@@ -9,7 +9,10 @@ read_oor(<<>>, Frames) ->
 	Rframes = lists:reverse(Frames),
 	[Info|Rest] = Rframes,
 	[Setup|Sound] = Rest,
-	{{oor_headers:parse_info(Info), Info}, {oor_headers:parse_setup(Setup), Setup}, Sound};
+	ParsedInfo = oor_headers:parse_info(Info),
+	io:format("info header ~w~n", [ParsedInfo]),
+	io:format("setup header ~s~n", [oor_headers:format_setup(Setup)]),
+	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup), Setup}, Sound};
 read_oor(Data, Frames) ->
 	{F, NextData} = oor_framing:read_frame(Data),
 	oor_framing:print_frame(F),

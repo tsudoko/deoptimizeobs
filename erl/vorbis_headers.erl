@@ -3,7 +3,7 @@
 
 % this is all very oor-specific for now
 
-dump_info({_, Channels, Rate, {Bs2, Bs1}})->
+dump_info({_, Channels, Rate, {Bs2, Bs1}, _})->
 	<<1, "vorbis", 0:32, Channels:8, Rate:32/little, 0:32, 0:32, 0:32, Bs1:4, Bs2:4, 1>>.
 
 dump_comment(Vendor, Fields) ->

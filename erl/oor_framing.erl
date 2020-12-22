@@ -64,7 +64,6 @@ print_frame({H, Pktlens, Body}) ->
 
 read_frame(Data) ->
 	H = read_frame_header(Data),
-	print_frame_header(H),
 
 	HSize = H#frame_header.headersize,
 	<<_:(HSize), Data_/bits>> = Data,
