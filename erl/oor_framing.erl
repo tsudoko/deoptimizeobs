@@ -81,5 +81,4 @@ read_frame(Data) ->
 	% body offset from original code: (vlenbits*npkt + 7 + headersize) / 8
 	% body len: all packet sizes summed up (Skip here)
 
-	io:format("~W~n", [NextFrame, 5]),
 	{{H, Pktlens, Body}, NextFrame}.
