@@ -1,6 +1,6 @@
 -module(oor_framing).
 -export([flaglist/1, is_bos/1, is_eos/1]).
--export([format_frame_header/1]).
+-export([format_frame_header/1, format_frame_flags/1]).
 -export([format_frame/1, read_frame/1]).
 
 -include("oor_records.hrl").
@@ -17,10 +17,19 @@ flaglist_(L, <<Rest:3/bits, 1:1>>) -> flaglist_([partial|L], Rest);
 flaglist_(L, <<_:2/bits, 0:1>>) -> L;
 flaglist_(L, <<_:2/bits, 1:1>>) -> [continued|L].
 
+format_frame_flags(<<_0:1, HasPos:1, Continued:1, Partial:1, Bos:1, Eos:1>>) ->
+	io_lib:format("~c~c~c~c~c~c", [
+		case _0        of 1 -> $1; _ -> $- end,
+		case HasPos    of 1 -> $g; _ -> $- end,
+		case Continued of 1 -> $c; _ -> $- end,
+		case Partial   of 1 -> $p; _ -> $- end,
+		case Bos       of 1 -> $b; _ -> $- end,
+		case Eos       of 1 -> $e; _ -> $- end]).
+
 format_frame_header(FH) ->
-	io_lib:format("headersize ~p flags ~p granulepos ~p npkt ~p basepktsize ~p vlenbits ~p", [
+	io_lib:format("headersize ~p ~s granulepos ~p npkt ~p basepktsize ~p vlenbits ~p", [
 		FH#frame_header.headersize,
-		FH#frame_header.flags,
+		format_frame_flags(FH#frame_header.flags),
 		FH#frame_header.granulepos,
 		FH#frame_header.npkt,
 		FH#frame_header.basepktsize,
