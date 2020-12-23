@@ -1,15 +1,10 @@
 -module(ogg_framing).
 -export([chop_packet/1, dump_page/5]).
 
+-import(util, [bitreflect8/1]).
+
 booltobit(false) -> 0;
 booltobit(true) -> 1.
-
-bitreflect8(Bin) ->
-	bitreflect8_(Bin, <<>>).
-bitreflect8_(<<A:1, B:1, C:1, D:1, E:1, F:1, G:1, H:1, Rest/bytes>>, Done) ->
-	bitreflect8_(Rest, <<Done/bytes, H:1, G:1, F:1, E:1, D:1, C:1, B:1, A:1>>);
-bitreflect8_(<<>>, Done) ->
-	Done.
 
 oggcrc(Data) when not is_binary(Data) ->
 	oggcrc(iolist_to_binary(Data));
