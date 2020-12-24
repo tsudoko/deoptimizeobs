@@ -14,13 +14,13 @@ flaglist_(L, <<Rest:4/bits, 0:1>>) -> flaglist_(L, Rest);
 flaglist_(L, <<Rest:4/bits, 1:1>>) -> flaglist_([bos|L], Rest);
 flaglist_(L, <<Rest:3/bits, 0:1>>) -> flaglist_(L, Rest);
 flaglist_(L, <<Rest:3/bits, 1:1>>) -> flaglist_([partial|L], Rest);
-flaglist_(L, <<_:2/bits, 0:1>>) -> L;
-flaglist_(L, <<_:2/bits, 1:1>>) -> [continued|L].
+flaglist_(L, <<Rest:2/bits, 0:1>>) -> flaglist_(L, Rest);
+flaglist_(L, <<Rest:2/bits, 1:1>>) -> flaglist_([continued|L], Rest);
+flaglist_(L, <<Ver:2>>) -> [{version, Ver}|L].
 
-format_frame_flags(<<_0:1, HasPos:1, Continued:1, Partial:1, Bos:1, Eos:1>>) ->
-	io_lib:format("~c~c~c~c~c~c", [
-		case _0        of 1 -> $1; _ -> $- end,
-		case HasPos    of 1 -> $g; _ -> $- end,
+format_frame_flags(<<Ver:2, Continued:1, Partial:1, Bos:1, Eos:1>>) ->
+	io_lib:format("v~w ~c~c~c~c", [
+		Ver,
 		case Continued of 1 -> $c; _ -> $- end,
 		case Partial   of 1 -> $p; _ -> $- end,
 		case Bos       of 1 -> $b; _ -> $- end,
@@ -37,19 +37,19 @@ format_frame_header(FH) ->
 
 read_frame_header(<<0:2, Rest/bits>>) ->
 	read_frame_header_(#frame_header{headersize=0}, <<0:2, Rest/bits>>);
-read_frame_header(<<Ext:2, Frest:4, _:2, GranulePos:64, _:6, Rest/bits>>) ->
-	read_frame_header_(#frame_header{granulepos=GranulePos, headersize=72}, <<Ext:2, Frest:4, Rest/bits>>).
-read_frame_header_(H, <<Ext:2, Flags0:2, Bos:1, Flags1:1, _:7, BasePktSizeSel:2, _/bits>>) when Bos =:= 1 ->
-	Flags = <<Ext:2, Flags0:2, Bos:1, Flags1:1>>,
+read_frame_header(<<Ver:2, Flags0:4, _:2, GranulePos:64, _:6, Rest/bits>>) ->
+	read_frame_header_(#frame_header{granulepos=GranulePos, headersize=72}, <<Ver:2, Flags0:4, Rest/bits>>).
+read_frame_header_(H, <<Ver:2, Flags0:2, Bos:1, Flags1:1, _:7, BasePktSizeSel:2, _/bits>>) when Bos =:= 1 ->
+	Flags = <<Ver:2, Flags0:2, Bos:1, Flags1:1>>,
 	H#frame_header{
 		vlenbits = 0,
 		npkt = 1,
 		basepktsize =
 			if BasePktSizeSel == 3 -> 3; true -> 2 end +
-			if Ext > 0 -> 10; true -> 0 end,
+			if Ver > 0 -> 10; true -> 0 end,
 		headersize = H#frame_header.headersize + 6,
 		flags = Flags};
-read_frame_header_(H, <<Ext:2, Flags0:4, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Rest/bits>>) ->
+read_frame_header_(H, <<Ver:2, Flags0:4, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Rest/bits>>) ->
 	PktSizeSize = case BasePktSizeSel of
 		0 -> 0;
 		1 -> 8;
@@ -57,7 +57,7 @@ read_frame_header_(H, <<Ext:2, Flags0:4, VlenBits:4, _:1, Npkt:8, BasePktSizeSel
 		% 3 is undefined
 	end,
 	<<BasePktSize:PktSizeSize, _/bits>> = Rest,
-	H#frame_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize, headersize=H#frame_header.headersize+21+PktSizeSize, flags= <<Ext:2, Flags0:4>>}.
+	H#frame_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize, headersize=H#frame_header.headersize+21+PktSizeSize, flags= <<Ver:2, Flags0:4>>}.
 
 read_packet_lengths(H, Data) ->
 	read_packet_lengths(H, Data, H#frame_header.npkt, []).
