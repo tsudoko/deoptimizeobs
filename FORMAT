@@ -1,5 +1,61 @@
+COptimizedObs is an audio container used in âge's rUGP engine.
+The "reference implementation" of the format is the riooor.rpo
+plugin file distributed with many titles based on rUGP.
+
+COptimizedObs is based on Ogg Vorbis. The audio stream is 100%
+compatible with Vorbis. The encapsulation format is a heavily
+modified version of Ogg, similar in high-level structure but
+more tightly packed than regular Ogg and without the packet
+segmentation scheme employed in Ogg.
+
 Page header
 -----------
+
+All variants of the header begin with a 2-bit version and 4-bit
+flags. Flags are, in order: continued (1000), partial (0100),
+bos (0010) and eos (0001).
+
+If the `continued` flag is set, the first packet on this page is
+fragmented and needs to be merged with the last packet from the
+previous page in order to be fully parseable. This is analogous to
+the Ogg 0x01 bitflag.
+
+If the `partial` flag is set, the last packet on this page is not
+complete and needs to be merged with the first packet from the
+next page in order to be fully parseable.
+Unlike Ogg, last packet length doesn't have to be equal to 255 in
+order for this flag to be set.
+
+If the `bos` flag is set, this page is the first page in the stream.
+This is analogous to the Ogg 0x02 bitflag.
+
+If the `eos` flag is set, this page is the last page in the stream.
+This is analogous to the Ogg 0x04 bitflag.
+
+Pictured:
+
+ 0 1 2 3 4 5  bits
++-+-+-+-+-+-+
+|ver|c|p|b|e|
++-+-+-+-+-+-+
+
+If the version is 1 or later, flags are followed by the 64-bit
+granule position, padded to the next byte.
+
+0               1               2               3               4 bytes
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|ver|c|p|b|e|   |                                               |
++-+-+-+-+-+-+-+-+                                               +
+|                           granulepos                          |
++               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               |0 0|0|0|0|0|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+The zeroed 6 bits are presumably left here to make byte-oriented
+parsing easier - with the 6-bit padding the rest of the page has
+the same bit alignment regardless of the header version so it's
+possible to read version, flags, granule position if present,
+and use v0 page parsing code for the rest of the fields.
 
 Page headers come in 4 variants. Fixed bits (hardcoded 1/0s)
 determine which variant the header belongs to.
