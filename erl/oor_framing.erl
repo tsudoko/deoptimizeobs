@@ -39,13 +39,17 @@ read_page_header(<<0:2, Rest/bits>>) ->
 	read_page_header_(#page_header{headersize=0}, <<0:2, Rest/bits>>);
 read_page_header(<<Ver:2, Flags0:4, _:2, GranulePos:64, _:6, Rest/bits>>) ->
 	read_page_header_(#page_header{granulepos=GranulePos, headersize=72}, <<Ver:2, Flags0:4, Rest/bits>>).
-read_page_header_(H, <<Ver:2, Flags0:2, Bos:1, Flags1:1, _:7, BasePktSizeSel:2, _/bits>>) when Bos =:= 1 ->
+read_page_header_(H, <<Ver:2, Flags0:2, Bos:1, Flags1:1, _:7, RateSel:2, _/bits>>) when Bos =:= 1 ->
+	% info header, special case, size needs to be inferred from the packet contents
 	Flags = <<Ver:2, Flags0:2, Bos:1, Flags1:1>>,
 	H#page_header{
 		vlenbits = 0,
 		npkt = 1,
 		basepktsize =
-			if BasePktSizeSel == 3 -> 3; true -> 2 end +
+			2 +
+			% extended sample rate
+			if RateSel >= 3 -> 1; true -> 0 end +
+			% final granulepos, some unknowns
 			if Ver > 0 -> 10; true -> 0 end,
 		headersize = H#page_header.headersize + 6,
 		flags = Flags};
