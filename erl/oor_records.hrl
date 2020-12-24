@@ -1,1 +1,1 @@
--record(frame_header, {headersize, flags, granulepos, npkt, basepktsize, vlenbits}).
+-record(page_header, {headersize, flags, granulepos, npkt, basepktsize, vlenbits}).

@@ -6,18 +6,18 @@
 
 read_oor(Data) ->
 	read_oor(Data, []).
-read_oor(<<>>, Frames) ->
-	Rframes = lists:reverse(Frames),
-	[Info|Rest] = Rframes,
+read_oor(<<>>, Pages) ->
+	Rpages = lists:reverse(Pages),
+	[Info|Rest] = Rpages,
 	[Setup|Sound] = Rest,
 	ParsedInfo = oor_headers:parse_info(Info),
 	io:format("info header ~w~n", [ParsedInfo]),
 	io:format("setup header ~s~n", [oor_headers:format_setup(Setup)]),
 	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup), Setup}, Sound};
-read_oor(Data, Frames) ->
-	{F, NextData} = oor_framing:read_frame(Data),
-	io:format("~s~n", [oor_framing:format_frame(F)]),
-	read_oor(NextData, [F|Frames]).
+read_oor(Data, Pages) ->
+	{F, NextData} = oor_framing:read_page(Data),
+	io:format("~s~n", [oor_framing:format_page(F)]),
+	read_oor(NextData, [F|Pages]).
 
 segment_pktlens(Pktlens) ->
 	segment_pktlens(Pktlens, []).
@@ -36,7 +36,7 @@ chop_binary([L|Lens], Bin, Done) ->
 chop_binary([], <<>>, Done) ->
 	lists:reverse(Done).
 
-get_granulepos({#frame_header{granulepos = undefined, flags = RawFlags}, Pktlens, Body}, {ModeInfo, PrevPos, PrevCount, PartialPkt}) ->
+get_granulepos({#page_header{granulepos = undefined, flags = RawFlags}, Pktlens, Body}, {ModeInfo, PrevPos, PrevCount, PartialPkt}) ->
 	Flags = oor_framing:flaglist(RawFlags),
 	[FLen|Restlens] = Pktlens,
 	{NewPos, NewCount, NewPartialPkt} = ogg_vorbis:granulepos(proplists:get_bool(partial, Flags), PrevPos, PrevCount, ModeInfo, [byte_size(PartialPkt)+FLen|Restlens], <<PartialPkt/bytes, Body/bytes>>),
@@ -46,7 +46,7 @@ get_granulepos({#frame_header{granulepos = undefined, flags = RawFlags}, Pktlens
 % contains pages with granulepos and pages without granulepos (haven't actually
 % encountered such a stream in practice so I'm not sure if there's a point in
 % doing this)
-get_granulepos({#frame_header{granulepos = GranulePos, flags = RawFlags}, Pktlens, Body}, {ModeInfo, _, _, _}) ->
+get_granulepos({#page_header{granulepos = GranulePos, flags = RawFlags}, Pktlens, Body}, {ModeInfo, _, _, _}) ->
 	Flags = oor_framing:flaglist(RawFlags),
 	[LastLen|Lens] = lists:reverse(Pktlens),
 	{Count, PartialPkt} = case proplists:get_bool(partial, Flags) of
@@ -68,17 +68,17 @@ to_ogg(Device, {{Info, {IH, _, _}}, {Setup, {SH, _, _}}, Sound}) ->
 	VI = ogg_framing:chop_packet(vorbis_headers:dump_info(Info)),
 	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201224; original encoder unknown", [])),
 	VS = ogg_framing:chop_packet(<<5, "vorbis", Setup/bytes>>),
-	IFlags = oor_framing:flaglist(IH#frame_header.flags),
-	IGranulePos = undefined_default(IH#frame_header.granulepos, fun() -> 0 end),
-	SFlags = oor_framing:flaglist(SH#frame_header.flags),
-	SGranulePos = undefined_default(SH#frame_header.granulepos, fun() -> 0 end),
+	IFlags = oor_framing:flaglist(IH#page_header.flags),
+	IGranulePos = undefined_default(IH#page_header.granulepos, fun() -> 0 end),
+	SFlags = oor_framing:flaglist(SH#page_header.flags),
+	SGranulePos = undefined_default(SH#page_header.granulepos, fun() -> 0 end),
 	ok = file:write(Device, ogg_framing:dump_page(IFlags, IGranulePos, SerialNum, 0, VI)),
 	ok = file:write(Device, ogg_framing:dump_page(SFlags, SGranulePos, SerialNum, 1, lists:flatten([VC, VS]))),
 	{_, _, _, {Bs1, Bs2}, _} = Info, % TODO: consider converting to record
 	ModeSizes = vorbis_headers:setup_mode_blocksizes(Setup),
 	to_ogg_(Device, Sound, {{{1 bsl Bs1, 1 bsl Bs2}, ModeSizes, ilog2(length(ModeSizes))-1}, SGranulePos, none, <<>>}, {SerialNum, 2}).
 to_ogg_(Device, [{H, Pktlens, Body}|Rest], GranulePosState, {SerialNum, PageNum}) ->
-	Flags = oor_framing:flaglist(H#frame_header.flags),
+	Flags = oor_framing:flaglist(H#page_header.flags),
 	{GranulePos, NewGranulePosState} = get_granulepos({H, Pktlens, Body}, GranulePosState),
 	Seglens = segment_pktlens(Pktlens),
 	ok = file:write(Device, ogg_framing:dump_page(Flags, GranulePos, SerialNum, PageNum, chop_binary(Seglens, Body))),

@@ -1,7 +1,7 @@
-Frame header
-------------
+Page header
+-----------
 
-Frame headers come in 4 variants. Fixed bits (hardcoded 1/0s)
+Page headers come in 4 variants. Fixed bits (hardcoded 1/0s)
 determine which variant the header belongs to.
 
  0                   1                   2                   3
@@ -46,4 +46,4 @@ after the the "base header", the length of which is defined by `base
 header size`. There are `packet count` lengths. To get complete packet
 lengths add `base packet size` to each length.
 
-Total frame size is the sum of all packet lengths and `base header size`.
+Total page size is the sum of all packet lengths and `base header size`.
