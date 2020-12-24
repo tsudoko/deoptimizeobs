@@ -64,23 +64,24 @@ get_granulepos({#frame_header{granulepos = GranulePos, flags = RawFlags}, Pktlen
 
 % TODO: (optionally?) process one page at a time (read from iodevice etc)
 to_ogg(Device, {{Info, {IH, _, _}}, {Setup, {SH, _, _}}, Sound}) ->
+	SerialNum = rand:uniform(16#ffffffff),
 	VI = ogg_framing:chop_packet(vorbis_headers:dump_info(Info)),
-	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201223; original encoder unknown", [])),
+	VC = ogg_framing:chop_packet(vorbis_headers:dump_comment("deoptimizeobs-erl-20201224; original encoder unknown", [])),
 	VS = ogg_framing:chop_packet(<<5, "vorbis", Setup/bytes>>),
 	IFlags = oor_framing:flaglist(IH#frame_header.flags),
 	IGranulePos = undefined_default(IH#frame_header.granulepos, fun() -> 0 end),
 	SFlags = oor_framing:flaglist(SH#frame_header.flags),
 	SGranulePos = undefined_default(SH#frame_header.granulepos, fun() -> 0 end),
-	ok = file:write(Device, ogg_framing:dump_page(IFlags, IGranulePos, 0, 0, VI)),
-	ok = file:write(Device, ogg_framing:dump_page(SFlags, SGranulePos, 0, 1, lists:flatten([VC, VS]))),
+	ok = file:write(Device, ogg_framing:dump_page(IFlags, IGranulePos, SerialNum, 0, VI)),
+	ok = file:write(Device, ogg_framing:dump_page(SFlags, SGranulePos, SerialNum, 1, lists:flatten([VC, VS]))),
 	{_, _, _, {Bs1, Bs2}, _} = Info, % TODO: consider converting to record
 	ModeSizes = vorbis_headers:setup_mode_blocksizes(Setup),
-	to_ogg_(Device, Sound, {{{1 bsl Bs1, 1 bsl Bs2}, ModeSizes, ilog2(length(ModeSizes))-1}, SGranulePos, none, <<>>}, 2).
-to_ogg_(Device, [{H, Pktlens, Body}|Rest], GranulePosState, PageNum) ->
+	to_ogg_(Device, Sound, {{{1 bsl Bs1, 1 bsl Bs2}, ModeSizes, ilog2(length(ModeSizes))-1}, SGranulePos, none, <<>>}, {SerialNum, 2}).
+to_ogg_(Device, [{H, Pktlens, Body}|Rest], GranulePosState, {SerialNum, PageNum}) ->
 	Flags = oor_framing:flaglist(H#frame_header.flags),
 	{GranulePos, NewGranulePosState} = get_granulepos({H, Pktlens, Body}, GranulePosState),
 	Seglens = segment_pktlens(Pktlens),
-	ok = file:write(Device, ogg_framing:dump_page(Flags, GranulePos, 0, PageNum, chop_binary(Seglens, Body))),
-	to_ogg_(Device, Rest, NewGranulePosState, PageNum+1);
+	ok = file:write(Device, ogg_framing:dump_page(Flags, GranulePos, SerialNum, PageNum, chop_binary(Seglens, Body))),
+	to_ogg_(Device, Rest, NewGranulePosState, {SerialNum, PageNum+1});
 to_ogg_(_, [], _, _) ->
 	ok.
