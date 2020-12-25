@@ -222,3 +222,30 @@ Setup header
 ------------
 
 TODO
+
+All known predefined headers are included in the `data` directory
+for convenience, but it's possible to generate them from scratch
+by executing the following command line:
+
+    echo | oggenc -r - $oggenc_options | trash/get-setup-hdr.escript > hdrfile
+
+It's important to use libvorbis 1.0 for this task as the more
+recent versions generate different setup headers. Get-setup-hdr
+is a simple script that extracts setup headers from Ogg files
+with the "\x05vorbis" prefix stripped.
+
++----+------------------------------------------+----------------------+
+| id | sha1 sum of the stripped header          | $oggenc_options      |
++----+------------------------------------------+----------------------+
+|  1 | 44a0a0ebf68508c81999bfee18882e73f08633e9 | -C 1 -R 44100 -q 0.5 |
+|  2 | 35317cb593d127f30c589ccbdb111802f7f7398c | -C 1 -R 44100 -q 1.5 |
+|  3 | 0fd840c8246d4dbea6467eff468ad3476f8483b0 | -C 1 -R 22050 -q 5   |
+|  4 | 3612e56744fbdcdae2241d917f5ad2b430880f24 | -C 2 -R 44100 -q 4   |
+|  5 | ed285ef5553f492664ee8cd13c98e59857b3a093 | -C 1 -R 44100 -q 2.2 |
+|  6 | 707c8fb7bd247e3e91f1952107f8872d2b5a3ac9 | -C 1 -R 48000 -q 2.5 |
++----+------------------------------------------+----------------------+
+
+Note: options mentioned above are just examples. In most cases the given
+header can be generated with other combinations too so it's not possible
+to reliably infer just from the setup header that a file with the given
+header has been encoded with these exact options.
