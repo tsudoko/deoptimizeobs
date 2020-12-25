@@ -7,8 +7,8 @@
 
 % this is all very oor-specific for now
 
-dump_info({_, Channels, Rate, {Bs2, Bs1}, _})->
-	<<1, "vorbis", 0:32, Channels:8, Rate:32/little, 0:32, 0:32, 0:32, Bs1:4, Bs2:4, 1>>.
+dump_info({_, Channels, Rate, {Bs0, Bs1}, _})->
+	<<1, "vorbis", 0:32, Channels:8, Rate:32/little, 0:32, 0:32, 0:32, Bs1:4, Bs0:4, 1>>.
 
 dump_comment(Vendor, Fields) ->
 	dump_comment_(<<3, "vorbis", (length(Vendor)):32/little, (unicode:characters_to_binary(Vendor))/bytes, (length(Fields)):32/little>>, Fields).
@@ -27,9 +27,9 @@ setup_mode_blocksizes_(<<1:1, Rest/bits>>) ->
 	setup_mode_blocksizes_(Rest, []).
 % /3, used for actual parsing
 setup_mode_blocksizes_(<<_:8, 0:16, 0:16, 0:1, Rest/bits>>, ModeSizes) ->
-	setup_mode_blocksizes_(Rest, [bs1|ModeSizes]);
+	setup_mode_blocksizes_(Rest, [bs0|ModeSizes]);
 setup_mode_blocksizes_(<<_:8, 0:16, 0:16, 1:1, Rest/bits>>, ModeSizes) ->
-	setup_mode_blocksizes_(Rest, [bs2|ModeSizes]);
+	setup_mode_blocksizes_(Rest, [bs1|ModeSizes]);
 setup_mode_blocksizes_(<<ModeCount:6, _/bits>>, ModeSizes) ->
 	% crappy sanity check since what we're doing is pretty hacky
 	ModeCount = length(ModeSizes)-1,
@@ -38,9 +38,9 @@ setup_mode_blocksizes_(<<ModeCount:6, _/bits>>, ModeSizes) ->
 audio_sample_count(_, <<>>) ->
 	io:format("empty packet (no samples)~n"),
 	0;
-audio_sample_count({{Bs1, Bs2}, ModeBlocksizes, ModeBits}, <<FirstByte:1/bytes, _/bytes>>) ->
+audio_sample_count({{Bs0, Bs1}, ModeBlocksizes, ModeBits}, <<FirstByte:1/bytes, _/bytes>>) ->
 	<<_:(8-1-ModeBits), ModeNum:ModeBits, 0:1>> = FirstByte,
 	case lists:nth(ModeNum+1, ModeBlocksizes) of
-		bs1 -> Bs1;
-		bs2 -> Bs2
+		bs0 -> Bs0;
+		bs1 -> Bs1
 	end.

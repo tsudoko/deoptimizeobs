@@ -13,9 +13,9 @@ parse_info({H, _, <<Ver:2, Channels:3, RateSel:2, Rest/bits>>}) ->
 	end,
 	{Rate, Rest2} = parse_info_rate(Ver, RateSel, Rest),
 	{Unknowns, Rest3} = parse_info_unknowns(Ver, Rest2),
-	<<Bs1:4, Bs2:4, 1:1, Padding/bits>> = Rest3,
+	<<Bs0:4, Bs1:4, 1:1, Padding/bits>> = Rest3,
 	<<0:(bit_size(Padding))>> = Padding,
-	{Ver, Channels, Rate, {Bs1, Bs2}, Unknowns}.
+	{Ver, Channels, Rate, {Bs0, Bs1}, Unknowns}.
 parse_info_rate(_, RateSel, Rest) when RateSel < 3 ->
 	{11025 bsl RateSel, Rest};
 parse_info_rate(Ver, _, <<RateSel:8, Rest/bits>>) ->

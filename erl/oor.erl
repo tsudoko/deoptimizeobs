@@ -74,9 +74,9 @@ to_ogg(Device, {{Info, {IH, _, _}}, {Setup, {SH, _, _}}, Sound}) ->
 	SGranulePos = undefined_default(SH#page_header.granulepos, fun() -> 0 end),
 	ok = file:write(Device, ogg_framing:dump_page(IFlags, IGranulePos, SerialNum, 0, VI)),
 	ok = file:write(Device, ogg_framing:dump_page(SFlags, SGranulePos, SerialNum, 1, lists:flatten([VC, VS]))),
-	{_, _, _, {Bs1, Bs2}, _} = Info, % TODO: consider converting to record
+	{_, _, _, {Bs0, Bs1}, _} = Info, % TODO: consider converting to record
 	ModeSizes = vorbis_headers:setup_mode_blocksizes(Setup),
-	to_ogg_(Device, Sound, {{{1 bsl Bs1, 1 bsl Bs2}, ModeSizes, ilog2(length(ModeSizes))-1}, SGranulePos, none, <<>>}, {SerialNum, 2}).
+	to_ogg_(Device, Sound, {{{1 bsl Bs0, 1 bsl Bs1}, ModeSizes, ilog2(length(ModeSizes))-1}, SGranulePos, none, <<>>}, {SerialNum, 2}).
 to_ogg_(Device, [{H, Pktlens, Body}|Rest], GranulePosState, {SerialNum, PageNum}) ->
 	Flags = oor_framing:flaglist(H#page_header.flags),
 	{GranulePos, NewGranulePosState} = get_granulepos({H, Pktlens, Body}, GranulePosState),
