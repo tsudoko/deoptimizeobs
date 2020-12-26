@@ -89,7 +89,7 @@ The rest of the header contains the base packet size and variable
 packet sizes, one for each packet. Both packet sizes are in bytes.
 
 For example a 2-packet page header with 3-bit variable sizes and
-a base packet size of 15 would look like this:
+a base packet size of 15 bytes would look like this:
 
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -116,7 +116,6 @@ respective variable packet size.
 
 The last variable packet size is followed by actual packet bodies.
 Packets are byte-padded.
-TODO: mention post-header padding
 
 Vorbis headers
 ==============
@@ -135,7 +134,7 @@ Identification header
 The identification page is always the first page in the stream.
 It's treated a bit differently from other pages as the size is
 not explicitly stored in the page header and needs to be inferred
-from the contents of the Vorbis identification header.
+from the contents of the identification header.
 
 Following the 6-bit padding (or version-flags in v0 pages), the
 identification header consists of a 2-bit version number, 3-bit
@@ -221,7 +220,17 @@ bs0) lg(bs1) f p
 Setup header
 ------------
 
-TODO
+The setup page is always the second page in the stream.
+
+ 0 1 2 3 4 5 6 7  bits
++-+-+-+-+-+-+-+-+
+|   | header id |
++-+-+-+-+-+-+-+-+
+
+It's not clear what the first 2 bits are used for. If header id
+is equal to 0, the packed setup header (without the "\x5vorbis"
+magic string) is placed immediately after the id field; otherwise
+it refers to a predefined setup header.
 
 All known predefined headers are included in the `data` directory
 for convenience, but it's possible to generate them from scratch
@@ -249,3 +258,15 @@ Note: options mentioned above are just examples. In most cases the given
 header can be generated with other combinations too so it's not possible
 to reliably infer just from the setup header that a file with the given
 header has been encoded with these exact options.
+
+Audio pages
+-----------
+
+Every page past the setup page is an audio page. There's nothing special
+about them, they contain Vorbis audio packets.
+
+References
+==========
+
+Vorbis I spec: https://xiph.org/vorbis/doc/Vorbis_I_spec.html
+Ogg framing:   https://xiph.org/vorbis/doc/framing.html
