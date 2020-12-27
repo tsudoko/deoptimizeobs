@@ -62,7 +62,7 @@ and use v0 page parsing code for the rest of the fields.
 
 The following description applies to every page except for the first.
 Information on how to parse the first page is available in the
-"Vorbis identification header" section.
+"Identification header" section.
 
 Following the version, flags and optional granulepos, the page header
 contains packet length information. Length information consists of a
