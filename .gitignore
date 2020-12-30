@@ -1,4 +1,14 @@
 *.beam
+*.o
+*.obj
+
+*.exp
+*.lib
+*.rpo
+*.ilk
+*.pdb
+
+config.mk
 
 *.ogg
 *.oor
