@@ -11,6 +11,27 @@ segmentation scheme employed in Ogg.
 This document covers page versions 0 and 1. Other versions are
 likely to be incompatible in some ways with what's written here.
 
+Some knowledge of the Ogg Vorbis stream structure is assumed.
+If a term written here seems unfamiliar, it's likely precisely
+defined in the Vorbis I specification or one of the accompanying
+documents. The most relevant resources are listed at the bottom of
+this file, they're worth a skim.
+
+Unless mentioned otherwise, page bit packing conventions are not
+compatible with the way Vorbis packet contents are packed. Bit
+order of the field contents is the same but the fields themselves
+are "MSb-aligned" instead of "LSb-aligned", so for example a 3-bit
+field x packed next to a 7-bit field y would look like this:
+
+     MSb      LSb
+       xxxyyyyy byte 1
+       yy------ byte 2
+
+Assuming x=5 (101) and y=19 (10011):
+
+       10100100
+       11------
+
 Page header
 -----------
 
