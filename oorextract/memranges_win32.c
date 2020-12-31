@@ -53,12 +53,20 @@ memscan(void *module, struct memranges *r, size_t rcap)
 		if(mem.Protect & (PAGE_GUARD | PAGE_NOACCESS) || !(mem.Protect & (PAGE_READ_ANY | PAGE_EXECUTE_ANY)))
 			continue;
 
-		r->r[r->n].from = (uintptr_t)mem.BaseAddress;
-		r->r[r->n].to = r->r[r->n].from + mem.RegionSize;
-		r->r[r->n].perms = 0;
+		enum MemPerms newperms = MEM_R;
 		if(mem.Protect & PAGE_EXECUTE_ANY)
-			r->r[r->n].perms |= MEM_X;
-		r->r[r->n].perms |= MEM_R;
+			newperms |= MEM_X;
+
+		if(r->n > 0 && r->r[r->n-1].to == (uintptr_t)mem.BaseAddress && r->r[r->n-1].perms == newperms) {
+			/* this page has the same permissions as the last page
+			   and there are no gaps between them, can merge */
+			r->r[r->n-1].to += mem.RegionSize;
+			--r->n;
+		} else {
+			r->r[r->n].from = (uintptr_t)mem.BaseAddress;
+			r->r[r->n].to = r->r[r->n].from + mem.RegionSize;
+			r->r[r->n].perms = newperms;
+		}
 	}
 	return r;
 }
