@@ -10,6 +10,16 @@
 #include "memranges.h"
 
 _Bool
+is_mem_x(struct memranges r, void *vaddr)
+{
+	uintptr_t addr = (uintptr_t)vaddr;
+	for(size_t i = 0; i < r.n; ++i)
+		if(r.r[i].perms & MEM_X && addr >= r.r[i].from && addr <= r.r[i].to)
+			return 1;
+	return 0;
+}
+
+_Bool
 is_mem_r(struct memranges r, void *vaddr)
 {
 	uintptr_t addr = (uintptr_t)vaddr;

@@ -30,7 +30,8 @@ is_vtable_candidate(struct memranges rl, struct complete_vtable *v, size_t nclas
 	if(!is_mem_r(rl, v) || !is_mem_r(rl, (void *)(((uintptr_t)v)+(sizeof *v))))
 		return 0;
 	struct rtti_objloc *l = v->loc;
-	return is_mem_r(rl, l) &&
+	return is_mem_x(rl, v->vtable[0]) &&
+		is_mem_r(rl, l) &&
 		is_mem_r(rl, (void *)(((uintptr_t)l)+(sizeof *l))) &&
 		is_mem_r(rl, l->typedesc) &&
 		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc)+(sizeof *l->typedesc))) &&
