@@ -6,6 +6,7 @@
 #include <MinHook.h>
 
 #include "util.h"
+#include "vtable.h"
 #include "rugp.h"
 
 #define BUFLEN 4096
@@ -62,9 +63,15 @@ PluginThisLibrary(void)
 {
 	MH_STATUS mret;
 	HMODULE riooor_base;
+	struct COptimizedObs_vtable1 *vtable;
 
 	if((riooor_base = GetModuleHandle("riooor.rpo")) == NULL) {
 		MessageBoxError(NULL, GetLastError(), "Failed to get riooor.rpo module handle");
+		return NULL;
+	}
+
+	if((vtable = vtable_for(riooor_base, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0)) == NULL) {
+		MessageBoxError(NULL, GetLastError(), "Failed to find COptimizedObs vtable");
 		return NULL;
 	}
 
@@ -73,12 +80,12 @@ PluginThisLibrary(void)
 		return NULL;
 	}
 
-	if((mret = MH_CreateHook((((char *)riooor_base)+SERIALIZE_ADDR), (LPVOID)wrapped_oor_serialize, (LPVOID *)&original_oor_serialize)) != MH_OK) {
+	if((mret = MH_CreateHook(vtable->Serialize, (LPVOID)wrapped_oor_serialize, (LPVOID *)&original_oor_serialize)) != MH_OK) {
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to create hook for COptimizedObs::Serialize: %s", MH_StatusToString(mret));
 		return NULL;
 	}
 
-	if((mret = MH_EnableHook((((char *)riooor_base)+SERIALIZE_ADDR))) != MH_OK) {
+	if((mret = MH_EnableHook(vtable->Serialize)) != MH_OK) {
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to hook COptimizedObs::Serialize: %s", MH_StatusToString(mret));
 		return NULL;
 	}
