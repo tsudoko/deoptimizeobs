@@ -27,7 +27,9 @@ struct complete_vtable {
 inline static _Bool
 is_vtable_candidate(struct memranges rl, struct complete_vtable *v, size_t nclassname)
 {
-	if(!is_mem_r(rl, v) || !is_mem_r(rl, (void *)(((uintptr_t)v)+(sizeof *v))))
+	/* +(sizeof (void *)) because flexible array members have a size of 0,
+	   we assume there's at least one element */
+	if(!is_mem_r(rl, v) || !is_mem_r(rl, (void *)(((uintptr_t)v)+(sizeof *v)+(sizeof (void *)))))
 		return 0;
 	struct rtti_objloc *l = v->loc;
 	return is_mem_x(rl, v->vtable[0]) &&
