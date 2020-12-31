@@ -10,7 +10,7 @@
 #include "memranges.h"
 
 _Bool
-is_mem_readable(struct memranges r, void *vaddr)
+is_mem_r(struct memranges r, void *vaddr)
 {
 	uintptr_t addr = (uintptr_t)vaddr;
 	for(size_t i = 0; i < r.n; ++i)

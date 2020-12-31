@@ -14,5 +14,5 @@ struct memranges {
 	size_t n;
 };
 
-_Bool is_mem_readable(struct memranges, void *);
+_Bool is_mem_r(struct memranges, void *);
 struct memranges *memscan(void *modulebase, struct memranges *, size_t);

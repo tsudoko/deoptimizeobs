@@ -27,16 +27,16 @@ struct complete_vtable {
 inline static _Bool
 is_vtable_candidate(struct memranges rl, struct complete_vtable *v, size_t nclassname)
 {
-	if(!is_mem_readable(rl, v) || !is_mem_readable(rl, (void *)(((uintptr_t)v)+(sizeof *v))))
+	if(!is_mem_r(rl, v) || !is_mem_r(rl, (void *)(((uintptr_t)v)+(sizeof *v))))
 		return 0;
 	struct rtti_objloc *l = v->loc;
-	return is_mem_readable(rl, l) &&
-		is_mem_readable(rl, (void *)(((uintptr_t)l)+(sizeof *l))) &&
-		is_mem_readable(rl, l->typedesc) &&
-		is_mem_readable(rl, (void *)(((uintptr_t)l->typedesc)+(sizeof *l->typedesc))) &&
-		is_mem_readable(rl, l->typedesc->vtable) &&
-		is_mem_readable(rl, l->typedesc->classname) &&
-		is_mem_readable(rl, (void *)(((uintptr_t)l->typedesc->classname)+nclassname));
+	return is_mem_r(rl, l) &&
+		is_mem_r(rl, (void *)(((uintptr_t)l)+(sizeof *l))) &&
+		is_mem_r(rl, l->typedesc) &&
+		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc)+(sizeof *l->typedesc))) &&
+		is_mem_r(rl, l->typedesc->vtable) &&
+		is_mem_r(rl, l->typedesc->classname) &&
+		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc->classname)+nclassname));
 }
 
 void *
