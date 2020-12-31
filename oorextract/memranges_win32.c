@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #include <windows.h>
 #define PSAPI_VERSION 1
 #include <psapi.h>
