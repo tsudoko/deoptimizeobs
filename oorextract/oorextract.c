@@ -6,6 +6,7 @@
 #include <MinHook.h>
 
 #include "util.h"
+#include "memranges.h"
 #include "vtable.h"
 #include "rugp.h"
 
@@ -52,6 +53,22 @@ err1:
 	original_oor_serialize(that, _, pmarchive);
 }
 
+struct COptimizedObs_vtable1 *
+find_coptimizedobs_vtable(HMODULE riooor_base)
+{
+	struct COptimizedObs_vtable1 *ret = NULL;
+	struct memrange ranges[16];
+	struct memranges mr = {ranges, 0};
+	if(memscan(riooor_base, &mr, 16) == NULL)
+		return NULL;
+
+	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0);
+	if(ret == NULL && GetLastError() == ERROR_SUCCESS)
+		SetLastError(ERROR_NOT_FOUND);
+
+	return ret;
+}
+
 __declspec(dllexport) const char *
 GetPluginString(void)
 {
@@ -70,7 +87,7 @@ PluginThisLibrary(void)
 		return NULL;
 	}
 
-	if((vtable = vtable_for(riooor_base, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0)) == NULL) {
+	if((vtable = find_coptimizedobs_vtable(riooor_base)) == NULL) {
 		MessageBoxError(NULL, GetLastError(), "Failed to find COptimizedObs vtable");
 		return NULL;
 	}
