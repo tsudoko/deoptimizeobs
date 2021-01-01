@@ -25,7 +25,7 @@ struct complete_vtable {
 };
 
 inline static _Bool
-is_vtable_candidate(struct memranges rl, struct complete_vtable *v, size_t nclassname)
+is_vtable_candidate(struct memranges rl, struct complete_vtable *v)
 {
 	/* +(sizeof (void *)) because flexible array members have a size of 0,
 	   we assume there's at least one element */
@@ -38,8 +38,7 @@ is_vtable_candidate(struct memranges rl, struct complete_vtable *v, size_t nclas
 		is_mem_r(rl, l->typedesc) &&
 		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc)+(sizeof *l->typedesc))) &&
 		is_mem_r(rl, l->typedesc->vtable) &&
-		is_mem_r(rl, l->typedesc->classname) &&
-		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc->classname)+nclassname));
+		is_mem_r(rl, l->typedesc->classname);
 }
 
 void *
@@ -47,11 +46,15 @@ find_msvc_vtable(struct memranges r, char *classname, size_t nclassname, int off
 {
 	for(int i = 0; i < r.n; ++i) {
 		for(struct complete_vtable *v = (void *)r.r[i].from; v < (struct complete_vtable *)(void *)r.r[i].to; ++v) {
-			if(!is_vtable_candidate(r, v, nclassname))
+			if(!is_vtable_candidate(r, v))
 				continue;
 			if(offset >= 0 && v->loc->offset != offset)
 				continue;
 
+			if(classname == NULL)
+				return v;
+			if(!is_mem_r(r, (void *)(((uintptr_t)v->loc->typedesc->classname)+nclassname)))
+				continue;
 			if(memcmp(classname, v->loc->typedesc->classname, nclassname) == 0)
 				return v->vtable;
 		}
