@@ -81,7 +81,7 @@ find_coptimizedobs_vtable(HMODULE riooor_base)
 __declspec(dllexport) const char *
 GetPluginString(void)
 {
-	return "oorextract.rpo Version 0.00.02\n\tstuff\n\tPublic domain";
+	return "oordump.rpo Version 0.00.02\n\tstuff\n\tPublic domain";
 }
 
 __declspec(dllexport) void *
