@@ -8,6 +8,7 @@
 #include "util.h"
 #include "memranges.h"
 #include "vtable.h"
+#include "vtable_mfc.h"
 #include "rugp.h"
 
 #define BUFLEN 4096
@@ -63,10 +64,15 @@ find_coptimizedobs_vtable(HMODULE riooor_base)
 		return NULL;
 
 	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0);
-	if(ret == NULL && GetLastError() == ERROR_SUCCESS)
-		SetLastError(ERROR_NOT_FOUND);
+	if(ret != NULL && is_mem_r(mr, ret+(sizeof *ret)))
+		return ret;
 
-	return ret;
+	ret = find_mfc_vtable(mr, "COptimizedObs", sizeof "COptimizedObs", 0, 0);
+	if(ret != NULL && is_mem_r(mr, ret+(sizeof *ret)))
+		return ret;
+
+	SetLastError(ERROR_NOT_FOUND);
+	return NULL;
 }
 
 __declspec(dllexport) const char *
