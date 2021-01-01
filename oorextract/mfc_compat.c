@@ -4,41 +4,41 @@
 
 int archive_file_offset = -1;
 
-unsigned long long (*cfseek)(struct CFile *, long long off, unsigned int whence);
-unsigned long long (*cfgetlen)(struct CFile *);
-size_t (*cfread)(struct CFile *, void *buf, size_t count);
+unsigned long long (__fastcall *cfseek)(struct CFile *, long long off, unsigned int whence);
+unsigned long long (__fastcall *cfgetlen)(struct CFile *);
+size_t (__fastcall *cfread)(struct CFile *, void *buf, size_t count);
 
-unsigned long long
+unsigned long long __fastcall
 cfseek42(struct CFile *cf, long long off, unsigned int whence)
 {
 	return ((struct CFile42 *)cf)->vtable->Seek(cf, 0, off, whence);
 }
 
-unsigned long long
+unsigned long long __fastcall
 cfseek100(struct CFile *cf, long long off, unsigned int whence)
 {
 	return ((struct CFile100 *)cf)->vtable->Seek(cf, 0, off, whence);
 }
 
-unsigned long long
+unsigned long long __fastcall
 cfgetlen42(struct CFile *cf)
 {
 	return ((struct CFile42 *)cf)->vtable->GetLength(cf);
 }
 
-unsigned long long
+unsigned long long __fastcall
 cfgetlen100(struct CFile *cf)
 {
 	return ((struct CFile100 *)cf)->vtable->GetLength(cf);
 }
 
-size_t
+size_t __fastcall
 cfread42(struct CFile *cf, void *buf, size_t count)
 {
 	return ((struct CFile42 *)cf)->vtable->Read(cf, 0, buf, count);
 }
 
-size_t
+size_t __fastcall
 cfread100(struct CFile *cf, void *buf, size_t count)
 {
 	return ((struct CFile100 *)cf)->vtable->Read(cf, 0, buf, count);
