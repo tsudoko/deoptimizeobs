@@ -44,20 +44,19 @@ is_vtable_candidate(struct memranges rl, struct complete_vtable *v)
 void *
 find_msvc_vtable(struct memranges r, char *classname, size_t nclassname, int offset)
 {
-	for(int i = 0; i < r.n; ++i) {
-		for(struct complete_vtable *v = (void *)r.r[i].from; v < (struct complete_vtable *)(void *)r.r[i].to; ++v) {
-			if(!is_vtable_candidate(r, v))
-				continue;
-			if(offset >= 0 && v->loc->offset != offset)
-				continue;
+	for(int i = 0; i < r.n; ++i)
+	for(struct complete_vtable *v = (void *)r.r[i].from; v < (struct complete_vtable *)(void *)r.r[i].to; ++v) {
+		if(!is_vtable_candidate(r, v))
+			continue;
+		if(offset >= 0 && v->loc->offset != offset)
+			continue;
 
-			if(classname == NULL)
-				return v;
-			if(!is_mem_r(r, (void *)(((uintptr_t)v->loc->typedesc->classname)+nclassname)))
-				continue;
-			if(memcmp(classname, v->loc->typedesc->classname, nclassname) == 0)
-				return v->vtable;
-		}
+		if(classname == NULL)
+			return v;
+		if(!is_mem_r(r, (void *)(((uintptr_t)v->loc->typedesc->classname)+nclassname)))
+			continue;
+		if(memcmp(classname, v->loc->typedesc->classname, nclassname) == 0)
+			return v->vtable;
 	}
 
 	return NULL;
