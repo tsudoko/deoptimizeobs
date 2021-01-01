@@ -110,8 +110,7 @@ find_coptimizedobs_vtable(HMODULE riooor_base)
 	struct memranges mr = {ranges, 0};
 	if(memscan(riooor_base, &mr, 16) == NULL)
 		return NULL;
-
-	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0);
+	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0, 0, 0);
 	if(ret != NULL && is_mem_r(mr, ret+(sizeof *ret)))
 		return ret;
 
