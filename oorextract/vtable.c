@@ -74,7 +74,7 @@ find_msvc_vtable(struct memranges r, char *classname, size_t nclassname, int off
 			*lastr = i;
 
 		if(classname == NULL)
-			return v;
+			return v->vtable;
 		if(!is_mem_r(r, (void *)(((uintptr_t)v->loc->typedesc->classname)+nclassname)))
 			continue;
 		if(memcmp(classname, v->loc->typedesc->classname, nclassname) == 0)
