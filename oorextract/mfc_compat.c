@@ -4,9 +4,45 @@
 
 int archive_file_offset = -1;
 
-unsigned long long (__fastcall *cfseek)(struct CFile *, void *_, long long off, unsigned int whence);
-unsigned long long (__fastcall *cfgetlen)(struct CFile *);
-size_t (__fastcall *cfread)(struct CFile *, void *_, void *buf, size_t count);
+unsigned long long (*cfseek)(struct CFile *, long long off, unsigned int whence);
+unsigned long long (*cfgetlen)(struct CFile *);
+size_t (*cfread)(struct CFile *, void *buf, size_t count);
+
+unsigned long long
+cfseek42(struct CFile *cf, long long off, unsigned int whence)
+{
+	return ((struct CFile42 *)cf)->vtable->Seek(cf, 0, off, whence);
+}
+
+unsigned long long
+cfseek100(struct CFile *cf, long long off, unsigned int whence)
+{
+	return ((struct CFile100 *)cf)->vtable->Seek(cf, 0, off, whence);
+}
+
+unsigned long long
+cfgetlen42(struct CFile *cf)
+{
+	return ((struct CFile42 *)cf)->vtable->GetLength(cf);
+}
+
+unsigned long long
+cfgetlen100(struct CFile *cf)
+{
+	return ((struct CFile100 *)cf)->vtable->GetLength(cf);
+}
+
+size_t
+cfread42(struct CFile *cf, void *buf, size_t count)
+{
+	return ((struct CFile42 *)cf)->vtable->Read(cf, 0, buf, count);
+}
+
+size_t
+cfread100(struct CFile *cf, void *buf, size_t count)
+{
+	return ((struct CFile100 *)cf)->vtable->Read(cf, 0, buf, count);
+}
 
 int
 check_mfc_version(void)
@@ -25,47 +61,28 @@ check_mfc_version(void)
 	return v;
 }
 
-/* this might not be exactly correct as different subclasses of CFile could
-   have different vtables, it would be safer if cf____ accessed the vtable
-   directly but it'd require more boilerplate */
-void
-prepare_cfmethods(struct CFile *cf)
+_Bool
+setup_mfc_compat(void)
 {
-	static _Bool prepared;
-	if(prepared)
-		return;
-
-	switch(check_mfc_version()) {
-	case 42:
-		cfseek = ((struct CFile42 *)cf)->vtable->Seek;
-		cfgetlen = ((struct CFile42 *)cf)->vtable->GetLength;
-		cfread = ((struct CFile42 *)cf)->vtable->Read;
-		break;
-	case 100:
-	default:
-		cfseek = cf->vtable->Seek;
-		cfgetlen = cf->vtable->GetLength;
-		cfread = cf->vtable->Read;
-	}
-
-	prepared = 1;
-}
-
-void
-setup_archive_file_offset(void)
-{
+	_Bool mfc_found = 0;
 	/* public symbol numbers change between major versions anyway so it's not like
 	   we'd gain anything from using CArchive::GetFile instead of getting the file
 	   object directly */
 	switch(check_mfc_version()) {
 	case 42:
 		archive_file_offset = 8;
-		break;
+		cfseek = cfseek42;
+		cfgetlen = cfgetlen42;
+		cfread = cfread42;
+		return 1;
 	case 100:
-		archive_file_offset = 9;
-		break;
+		mfc_found = 1;
+		/* fallthrough */
 	default:
-		MessageBoxA(NULL, "Unknown MFC version, you may encounter crashes.\n", "Warning",  MB_ICONWARNING);
 		archive_file_offset = 9;
+		cfseek = cfseek100;
+		cfgetlen = cfgetlen100;
+		cfread = cfread100;
 	}
+	return mfc_found;
 }

@@ -22,7 +22,6 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 {
 	char fname[] = "/tmp/hauu";
 	struct CFile *cf = pmarchive->archive.stuff[archive_file_offset];
-	prepare_cfmethods(cf);
 
 	fprintf(stderr, "oor read %p %p\n", that, pmarchive);
 
@@ -38,7 +37,7 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 	size_t ncur, nleft = cfgetlen(cf);
 	while(nleft) {
 		ncur = nleft > BUFLEN ? BUFLEN : nleft;
-		if(cfread(cf, _, buf, ncur) != ncur) {
+		if(cfread(cf, buf, ncur) != ncur) {
 			MessageBoxA(NULL, "Failed to read sound file", NULL, MB_ICONERROR);
 			goto err2;
 		}
@@ -50,7 +49,7 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 	}
 
 err2:
-	cfseek(cf, _, 0, 0);
+	cfseek(cf, 0, 0);
 	if(fclose(f))
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to close %s", fname);
 err1:
@@ -102,7 +101,8 @@ PluginThisLibrary(void)
 		return NULL;
 	}
 
-	setup_archive_file_offset();
+	if(!setup_mfc_compat())
+		MessageBoxA(NULL, "Unknown MFC version, you may encounter crashes.", "Warning", MB_ICONWARNING);
 
 	if((mret = MH_Initialize()) != MH_OK) {
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to initialize MinHook: %s", MH_StatusToString(mret));

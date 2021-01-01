@@ -1,6 +1,8 @@
 /* Rough MFC/rUGP types */
 
-struct CFile {
+struct CFile;
+
+struct CFile100 {
 	struct {
 		void *stuff0[5];
 		size_t (__fastcall *GetPosition)(struct CFile *);
