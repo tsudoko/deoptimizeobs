@@ -27,18 +27,6 @@ struct CRuntimeClass {
 	void *init;
 };
 
-struct CRuntimeClassEx58 {
-	struct CRuntimeClass rtc;
-	void *stuff[3];
-	struct {
-		char *name;
-		char *filename;
-		char *ver;
-	} *plugin_rtc;
-	void *other_init;
-	char *profile;
-};
-
 _Bool
 is_rtc_candidate(struct memranges r, struct CRuntimeClass *rtc)
 {
