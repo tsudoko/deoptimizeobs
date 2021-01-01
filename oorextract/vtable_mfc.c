@@ -60,7 +60,7 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t *
 	}
 
 	for(int i = si; i < r.n; ++i)
-	for(void *v = (void *)lastaddr; v < (void *)r.r[i].to; ++v) {
+	for(uintptr_t v = lastaddr; v < r.r[i].to; v += (sizeof (void *))) {
 		if(!is_mem_x(r, ((unsigned char **)v)[0]))
 			continue;
 		unsigned char *g = ((unsigned char **)v)[0];
@@ -76,11 +76,11 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t *
 			*lastr = i;
 
 		if(classname == NULL)
-			return v;
+			return (void *)v;
 		if(!is_mem_r(r, rtc->name+nclassname))
 			continue;
 		if(memcmp(rtc->name, classname, nclassname) == 0)
-			return v;
+			return (void *)v;
 	}
 
 	return NULL;
