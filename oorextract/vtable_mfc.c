@@ -75,7 +75,7 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t l
 
 		if(classname == NULL)
 			return v;
-		if(!is_mem_r(r, rtc->name) && !is_mem_r(r, rtc->name+nclassname))
+		if(!is_mem_r(r, rtc->name+nclassname))
 			continue;
 		if(memcmp(rtc->name, classname, nclassname) == 0)
 			return v;
