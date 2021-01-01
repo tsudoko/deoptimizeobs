@@ -7,7 +7,7 @@
 
 #include "util.h"
 #include "memranges.h"
-#include "vtable.h"
+#include "vtable_msvc.h"
 #include "vtable_mfc.h"
 #include "rugp.h"
 
