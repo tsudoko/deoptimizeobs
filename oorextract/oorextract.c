@@ -108,13 +108,15 @@ find_coptimizedobs_vtable(HMODULE riooor_base)
 	struct COptimizedObs_vtable1 *ret = NULL;
 	struct memrange ranges[16];
 	struct memranges mr = {ranges, 0};
+
 	if(memscan(riooor_base, &mr, 16) == NULL)
 		return NULL;
-	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0, 0, 0);
+
+	ret = find_msvc_vtable(mr, ".?AVCOptimizedObs@@", sizeof ".?AVCOptimizedObs@@", 0, NULL, 0);
 	if(ret != NULL && is_mem_r(mr, ret+(sizeof *ret)))
 		return ret;
 
-	ret = find_mfc_vtable(mr, "COptimizedObs", sizeof "COptimizedObs", 0, 0);
+	ret = find_mfc_vtable(mr, "COptimizedObs", sizeof "COptimizedObs", NULL, 0);
 	if(ret != NULL && is_mem_r(mr, ret+(sizeof *ret)))
 		return ret;
 

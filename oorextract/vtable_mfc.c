@@ -49,18 +49,29 @@ is_rtc_candidate(struct memranges r, struct CRuntimeClass *rtc)
 		(rtc->get_parent != NULL ? 1 : is_mem_x(r, rtc->get_parent));
 }
 
-void *
-find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t lastr, uintptr_t lastaddr)
+char *
+mfc_vtable_classname(void *v)
 {
+	unsigned char *g = ((unsigned char **)v)[0];
+	struct CRuntimeClass *rtc = (void *)(g[1] | (g[2] << 8) | (g[3] << 16) | (g[4] << 24));
+	return rtc->name;
+}
+
+void *
+find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t *lastr, uintptr_t lastaddr)
+{
+	size_t si;
 	if(r.n == 0)
 		return NULL;
 
 	if(!lastaddr) {
-		lastr = 0;
-		lastaddr = r.r[lastr].from;
+		si = 0;
+		lastaddr = r.r[si].from;
+	} else {
+		si = *lastr;
 	}
 
-	for(int i = lastr; i < r.n; ++i)
+	for(int i = si; i < r.n; ++i)
 	for(void *v = (void *)lastaddr; v < (void *)r.r[i].to; ++v) {
 		if(!is_mem_x(r, ((unsigned char **)v)[0]))
 			continue;
@@ -72,6 +83,9 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t l
 		struct CRuntimeClass *rtc = (void *)(g[1] | (g[2] << 8) | (g[3] << 16) | (g[4] << 24));
 		if(!is_rtc_candidate(r, rtc))
 			continue;
+
+		if(lastr != NULL)
+			*lastr = i;
 
 		if(classname == NULL)
 			return v;

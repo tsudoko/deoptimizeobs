@@ -38,26 +38,40 @@ is_vtable_candidate(struct memranges rl, struct complete_vtable *v)
 		is_mem_r(rl, l->typedesc) &&
 		is_mem_r(rl, (void *)(((uintptr_t)l->typedesc)+(sizeof *l->typedesc))) &&
 		is_mem_r(rl, l->typedesc->vtable) &&
-		is_mem_r(rl, l->typedesc->classname);
+		is_mem_r(rl, l->typedesc->classname) &&
+		is_mem_r(rl, l->typedesc->classname+(sizeof ".?AV"-1)) &&
+		memcmp(l->typedesc->classname, ".?AV", sizeof ".?AV"-1) == 0;
+}
+
+char *
+msvc_vtable_classname(void *v)
+{
+	return ((struct complete_vtable *)v-1)->loc->typedesc->classname;
 }
 
 void *
-find_msvc_vtable(struct memranges r, char *classname, size_t nclassname, int offset, size_t lastr, uintptr_t lastaddr)
+find_msvc_vtable(struct memranges r, char *classname, size_t nclassname, int offset, size_t *lastr, uintptr_t lastaddr)
 {
+	int si;
 	if(r.n == 0)
 		return NULL;
 
 	if(!lastaddr) {
-		lastr = 0;
-		lastaddr = r.r[lastr].from;
+		si = 0;
+		lastaddr = r.r[si].from;
+	} else {
+		si = *lastr;
 	}
 
-	for(int i = lastr; i < r.n; ++i)
+	for(int i = si; i < r.n; ++i)
 	for(struct complete_vtable *v = (void *)lastaddr; v < (struct complete_vtable *)(void *)r.r[i].to; ++v) {
 		if(!is_vtable_candidate(r, v))
 			continue;
 		if(offset >= 0 && v->loc->offset != offset)
 			continue;
+
+		if(lastr != NULL)
+			*lastr = i;
 
 		if(classname == NULL)
 			return v;
