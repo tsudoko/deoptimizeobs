@@ -2,6 +2,11 @@
 
 #include "memranges.h"
 
+/* vtable_msvc.c - vtable enumerator for classes with MSVC RTTI
+ *
+ * Tested only with 32-bit programs, some type widths may be wrong.
+ */
+
 struct rtti_objloc {
 	size_t signature;
 	size_t offset;
