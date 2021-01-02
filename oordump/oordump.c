@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include <windows.h>
 
@@ -11,8 +13,12 @@
 #include "vtable_mfc.h"
 #include "rugp.h"
 #include "mfc_compat.h"
+#include "gui.h"
 
 #define BUFLEN 4096
+
+char outdir[MAX_PATH] = {0};
+_Bool gui_done = 0;
 
 /* I'd use thiscall here but msvc doesn't let me */
 void (__fastcall *original_oor_serialize)(struct COptimizedObs *, void *_, struct CPmArchive *);
@@ -20,17 +26,45 @@ void (__fastcall *original_oor_serialize)(struct COptimizedObs *, void *_, struc
 void __fastcall
 wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pmarchive)
 {
-	char fname[] = "/tmp/hauu";
+	if(!is_dumping_enabled())
+		goto fin0;
+
 	struct CFile *cf = pmarchive->archive.stuff[archive_file_offset];
 
 	fprintf(stderr, "oor read %p %p\n", that, pmarchive);
 
-	/* TODO: figure out if there's a stable-ish way to get offset in rio file */
+	gui_setstatus("dumping");
+	gui_disable();
 
-	FILE *f = fopen(fname, "wb");
+	char fpath[MAX_PATH];
+	char *outdirend = strchr(outdir, '\0');
+	if(outdirend == NULL) {
+		MessageBoxA(NULL, "Output path invalid.", NULL, MB_ICONERROR);
+		disable_dumping();
+		goto fin1;
+	}
+	size_t pathn = outdirend - outdir;
+	if(pathn > sizeof fpath) {
+		MessageBoxA(NULL, "Output path too long.", NULL, MB_ICONERROR);
+		disable_dumping();
+		goto fin1;
+	}
+
+	memcpy(fpath, outdir, pathn);
+	char *fname = fpath + pathn;
+
+	/* TODO: figure out if there's a stable-ish way to get offset in rio file */
+	if(snprintf(fname, MAX_PATH-pathn-1-1, "/%10ld_%06x.oor", time(NULL), rand()) < 0) {
+		MessageBoxA(NULL, "Failed to prepare final output path.", NULL, MB_ICONERROR);
+		disable_dumping();
+		goto fin1;
+	}
+
+	FILE *f = fopen(fpath, "wb");
 	if(f == NULL) {
-		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to open %s: %s", fname, strerror(errno));
-		goto err1;
+		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to open %s: %s", fpath, strerror(errno));
+		disable_dumping();
+		goto fin1;
 	}
 
 	char buf[BUFLEN];
@@ -39,20 +73,25 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 		ncur = nleft > BUFLEN ? BUFLEN : nleft;
 		if(cfread(cf, buf, ncur) != ncur) {
 			MessageBoxA(NULL, "Failed to read sound file", NULL, MB_ICONERROR);
-			goto err2;
+			disable_dumping();
+			goto fin2;
 		}
 		if(fwrite(buf, 1, ncur, f) != ncur) {
 			MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to write %s", fname);
-			goto err2;
+			disable_dumping();
+			goto fin2;
 		}
 		nleft -= ncur;
 	}
 
-err2:
+fin2:
 	cfseek(cf, 0, 0);
 	if(fclose(f))
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to close %s", fname);
-err1:
+fin1:
+	gui_enable();
+	gui_setstatus("idle");
+fin0:
 	original_oor_serialize(that, _, pmarchive);
 }
 
@@ -111,12 +150,30 @@ PluginThisLibrary(void)
 
 	if((mret = MH_CreateHook(vtable->Serialize, (LPVOID)wrapped_oor_serialize, (LPVOID *)&original_oor_serialize)) != MH_OK) {
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to create hook for COptimizedObs::Serialize: %s", MH_StatusToString(mret));
-		return NULL;
+		goto err;
 	}
 
 	if((mret = MH_EnableHook(vtable->Serialize)) != MH_OK) {
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to hook COptimizedObs::Serialize: %s", MH_StatusToString(mret));
-		return NULL;
+		goto err;
 	}
+
+	srand(time(NULL));
 	return NULL;
+
+err:
+	MH_Uninitialize();
+	// TODO: send window destroy message
+	return NULL;
+}
+
+BOOL WINAPI
+DllMain(HINSTANCE dll, DWORD reason, LPVOID _)
+{
+	if(reason == DLL_PROCESS_ATTACH && !gui_done) {
+		gui_done = gui_init(dll);
+		return gui_done;
+	}
+
+	return TRUE;
 }

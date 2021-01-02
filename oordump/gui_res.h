@@ -1,0 +1,8 @@
+#define IDD_MAIN 100
+
+#define IDBTN_DUMP        1001
+#define IDBTN_ONESHOT     1002
+#define IDST_OUTPATH      1003
+#define IDBTN_OUTBROWSE   1004
+#define IDST_OUTPATH_FIXED 1007
+#define IDST_STATUS       1008
