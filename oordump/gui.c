@@ -9,6 +9,7 @@
 extern char outdir[MAX_PATH]; /* oordump.c */
 static HANDLE dll;
 static HWND maindlg;
+static HWND st_outdir, tt_outdir;
 static BOOL dumping_enabled = FALSE;
 
 static _Bool
@@ -28,6 +29,32 @@ gui_select_dir(HWND parent, char **result)
 	}
 
 	return 1;
+}
+
+static HWND
+tooltip_init(HMODULE module, HWND control, HWND parent, char *text)
+{
+	HWND tooltip = CreateWindowA(
+		TOOLTIPS_CLASS, NULL,
+		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		parent, NULL,
+		module, NULL
+	);
+	if(!tooltip)
+		return NULL;
+
+	TOOLINFOA info = {
+		.hwnd = parent,
+		.uFlags = TTF_IDISHWND | TTF_SUBCLASS,
+		.uId = control,
+		.lpszText = text,
+		.cbSize = sizeof info,
+	};
+	SendMessageA(tooltip, TTM_ADDTOOLA, 0, (LPARAM)&info);
+
+	return tooltip;
 }
 
 void
@@ -62,8 +89,15 @@ gui_resetstatus(void)
 static void
 set_outdir(HWND maindlg, char *outdir)
 {
-	HWND outpath_label = GetDlgItem(maindlg, IDST_OUTPATH);
-	SetWindowTextA(outpath_label, outdir);
+	TOOLINFOA info = {
+		.hwnd = maindlg,
+		.uFlags = TTF_IDISHWND | TTF_SUBCLASS,
+		.uId = st_outdir,
+		.lpszText = outdir,
+		.cbSize = sizeof info,
+	};
+	SetWindowTextA(st_outdir, outdir);
+	SendMessageA(tt_outdir, TTM_UPDATETIPTEXTA, 0, (LPARAM)&info);
 }
 
 INT_PTR __stdcall
@@ -126,6 +160,9 @@ gui_init(HMODULE module)
 		goto err_noncrit1;
 
 err_noncrit1:
+
+	st_outdir = GetDlgItem(maindlg, IDST_OUTPATH);
+	tt_outdir = tooltip_init(dll, st_outdir, maindlg, outdir);
 	gui_resetstatus();
 	if(SHGetSpecialFolderPathA(HWND_DESKTOP, outdir, CSIDL_DESKTOP, FALSE))
 		set_outdir(maindlg, outdir);
