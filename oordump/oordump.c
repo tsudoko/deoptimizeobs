@@ -90,7 +90,7 @@ fin2:
 		MessageBoxS(NULL, NULL, MB_ICONERROR, "Failed to close %s", fname);
 fin1:
 	gui_enable();
-	gui_setstatus("idle");
+	gui_resetstatus();
 fin0:
 	original_oor_serialize(that, _, pmarchive);
 }

@@ -53,6 +53,12 @@ gui_setstatus(char *s)
 		MessageBoxError(maindlg, GetLastError(), "Failed to set status.");
 }
 
+void
+gui_resetstatus(void)
+{
+	gui_setstatus(dumping_enabled ? "idle" : "off");
+}
+
 static void
 set_outdir(HWND maindlg, char *outdir)
 {
@@ -70,7 +76,7 @@ proc_main(HWND dlg, UINT msg, WPARAM wparam, LPARAM lparam)
 			if(HIWORD(wparam) != BN_CLICKED)
 				return FALSE;
 			dumping_enabled = !dumping_enabled;
-			gui_setstatus(dumping_enabled ? "idle" : "off");
+			gui_resetstatus();
 			return TRUE;
 		case IDBTN_OUTBROWSE:
 			if(!gui_select_dir(dlg, &outdir))
@@ -120,7 +126,7 @@ gui_init(HMODULE module)
 		goto err_noncrit1;
 
 err_noncrit1:
-	gui_setstatus(dumping_enabled ? "idle" : "off");
+	gui_resetstatus();
 	if(SHGetSpecialFolderPathA(HWND_DESKTOP, outdir, CSIDL_DESKTOP, FALSE))
 		set_outdir(maindlg, outdir);
 
