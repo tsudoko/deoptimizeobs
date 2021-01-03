@@ -4,7 +4,18 @@
 #include <windows.h>
 
 void
-MessageBoxS(HWND parent, LPCSTR title, UINT type, const char *fmt, ...)
+MessageBoxSW(HWND parent, LPCWSTR title, UINT type, const wchar_t *fmt, ...)
+{
+	static wchar_t msgbuf[4096];
+	va_list ap;
+	va_start(ap, fmt);
+	vswprintf(msgbuf, (sizeof msgbuf / sizeof (wchar_t))-1, fmt, ap);
+	va_end(ap);
+	MessageBoxW(parent, msgbuf, title, type);
+}
+
+void
+MessageBoxSA(HWND parent, LPCSTR title, UINT type, const char *fmt, ...)
 {
 	static char msgbuf[4096];
 	va_list ap;

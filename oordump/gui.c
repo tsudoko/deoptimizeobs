@@ -6,23 +6,23 @@
 #include "util.h"
 #include "gui_res.h"
 
-extern char outdir[MAX_PATH]; /* oordump.c */
+extern wchar_t outdir[MAX_PATH]; /* oordump.c */
 static HANDLE dll;
 static HWND maindlg;
 static HWND st_outdir, tt_outdir;
 
 static _Bool
-gui_select_dir(HWND parent, char **result)
+gui_select_dir(HWND parent, wchar_t **result)
 {
-	BROWSEINFO bi = {
+	BROWSEINFOW bi = {
 		.hwndOwner = parent,
 		.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI,
 	};
 	PCIDLIST_ABSOLUTE idl;
-	if((idl = SHBrowseForFolderA(&bi)) == NULL)
+	if((idl = SHBrowseForFolderW(&bi)) == NULL)
 		return 0;
 
-	if(!SHGetPathFromIDListA(idl, result)) {
+	if(!SHGetPathFromIDListW(idl, result)) {
 		MessageBoxA(maindlg, "Failed to convert path.", NULL, MB_ICONERROR);
 		return 0;
 	}
@@ -31,10 +31,10 @@ gui_select_dir(HWND parent, char **result)
 }
 
 static HWND
-tooltip_init(HMODULE module, HWND control, HWND parent, char *text)
+tooltip_init(HMODULE module, HWND control, HWND parent, wchar_t *text)
 {
-	HWND tooltip = CreateWindowA(
-		TOOLTIPS_CLASS, NULL,
+	HWND tooltip = CreateWindowW(
+		TOOLTIPS_CLASSW, NULL,
 		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		CW_USEDEFAULT, CW_USEDEFAULT,
@@ -44,14 +44,14 @@ tooltip_init(HMODULE module, HWND control, HWND parent, char *text)
 	if(!tooltip)
 		return NULL;
 
-	TOOLINFOA info = {
+	TOOLINFOW info = {
 		.hwnd = parent,
 		.uFlags = TTF_IDISHWND | TTF_SUBCLASS,
 		.uId = control,
 		.lpszText = text,
 		.cbSize = sizeof info,
 	};
-	SendMessageA(tooltip, TTM_ADDTOOLA, 0, (LPARAM)&info);
+	SendMessageW(tooltip, TTM_ADDTOOLW, 0, (LPARAM)&info);
 
 	return tooltip;
 }
@@ -86,17 +86,17 @@ gui_resetstatus(void)
 }
 
 static void
-set_outdir(HWND maindlg, char *outdir)
+set_outdir(HWND maindlg, wchar_t *outdir)
 {
-	TOOLINFOA info = {
+	TOOLINFOW info = {
 		.hwnd = maindlg,
 		.uFlags = TTF_IDISHWND | TTF_SUBCLASS,
 		.uId = st_outdir,
 		.lpszText = outdir,
 		.cbSize = sizeof info,
 	};
-	SetWindowTextA(st_outdir, outdir);
-	SendMessageA(tt_outdir, TTM_UPDATETIPTEXTA, 0, (LPARAM)&info);
+	SetWindowTextW(st_outdir, outdir);
+	SendMessageW(tt_outdir, TTM_UPDATETIPTEXTW, 0, (LPARAM)&info);
 }
 
 INT_PTR __stdcall
@@ -143,7 +143,7 @@ BOOL
 gui_init(HMODULE module)
 {
 	dll = module;
-	maindlg = CreateDialogA(dll, MAKEINTRESOURCE(IDD_MAIN), NULL, proc_main);
+	maindlg = CreateDialogW(dll, MAKEINTRESOURCEW(IDD_MAIN), NULL, proc_main);
 	if(!maindlg) {
 		MessageBoxError(maindlg, GetLastError(), "Failed to create main window");
 		return FALSE;
@@ -162,7 +162,7 @@ err_noncrit1:
 	st_outdir = GetDlgItem(maindlg, IDST_OUTPATH);
 	tt_outdir = tooltip_init(dll, st_outdir, maindlg, outdir);
 	gui_resetstatus();
-	if(SHGetSpecialFolderPathA(HWND_DESKTOP, outdir, CSIDL_DESKTOP, FALSE))
+	if(SHGetSpecialFolderPathW(HWND_DESKTOP, outdir, CSIDL_DESKTOP, FALSE))
 		set_outdir(maindlg, outdir);
 
 	return TRUE;
