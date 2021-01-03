@@ -154,7 +154,7 @@ gui_init(HMODULE module)
 		goto err_noncrit1;
 	if(!GetWindowRect(maindlg, &dr))
 		goto err_noncrit1;
-	if(!SetWindowPos(maindlg, HWND_TOP, sr.right - (sr.right/8 + (dr.right-dr.left)), (sr.top + (dr.right-dr.left)/2), 0, 0, SWP_NOSIZE|SWP_SHOWWINDOW))
+	if(!SetWindowPos(maindlg, HWND_TOP, sr.right - 8 - (dr.right-dr.left), (sr.top + (dr.right-dr.left)/2), 0, 0, SWP_NOSIZE|SWP_SHOWWINDOW))
 		goto err_noncrit1;
 
 err_noncrit1:
