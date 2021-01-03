@@ -10,7 +10,6 @@ extern char outdir[MAX_PATH]; /* oordump.c */
 static HANDLE dll;
 static HWND maindlg;
 static HWND st_outdir, tt_outdir;
-static BOOL dumping_enabled = FALSE;
 
 static _Bool
 gui_select_dir(HWND parent, char **result)
@@ -66,7 +65,7 @@ disable_dumping(void)
 _Bool
 is_dumping_enabled(void)
 {
-	return dumping_enabled;
+	return IsDlgButtonChecked(maindlg, IDBTN_DUMP) == BST_CHECKED;
 }
 
 void
@@ -83,7 +82,7 @@ gui_setstatus(char *s)
 void
 gui_resetstatus(void)
 {
-	gui_setstatus(dumping_enabled ? "idle" : "off");
+	gui_setstatus(is_dumping_enabled() ? "idle" : "off");
 }
 
 static void
@@ -109,7 +108,6 @@ proc_main(HWND dlg, UINT msg, WPARAM wparam, LPARAM lparam)
 		case IDBTN_DUMP:
 			if(HIWORD(wparam) != BN_CLICKED)
 				return FALSE;
-			dumping_enabled = !dumping_enabled;
 			gui_resetstatus();
 			return TRUE;
 		case IDBTN_OUTBROWSE:
