@@ -17,11 +17,11 @@ defined in the Vorbis I specification or one of the accompanying
 documents. The most relevant resources are listed at the bottom of
 this file, they're worth a skim.
 
-Unless mentioned otherwise, page bit packing conventions are not
-compatible with the way Vorbis packet contents are packed. Bit
-order of the field contents is the same but the fields themselves
-are "MSb-aligned" instead of "LSb-aligned", so for example a 3-bit
-field x packed next to a 7-bit field y would look like this:
+Page bit packing conventions are not compatible with the way Vorbis
+packet contents are packed. Bit order of the field contents is the
+same but the fields themselves are "MSb-aligned" instead of
+"LSb-aligned", so for example a 3-bit field x packed next to a
+7-bit field y would look like this:
 
      MSb      LSb
        xxxyyyyy byte 1
