@@ -1,9 +1,9 @@
 #!/usr/bin/env escript
-%%! -pa erl
 
 main([]) ->
 	io:format("gimme filenames~n");
 main(Filenames) ->
+	true = code:add_patha(filename:join([filename:dirname(escript:script_name()), "erl"])),
 	process(Filenames).
 
 process([Filename|Rest]) ->
