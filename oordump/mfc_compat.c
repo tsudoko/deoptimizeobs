@@ -11,7 +11,7 @@ size_t (__fastcall *cfread)(struct CFile *, void *buf, size_t count);
 struct CFile100 {
 	struct {
 		void *stuff0[5];
-		size_t (__fastcall *GetPosition)(struct CFile *);
+		unsigned long long (__fastcall *GetPosition)(struct CFile *);
 		void *stuff1[7];
 		unsigned long long (__fastcall *Seek)(struct CFile *, void *_, long long off, unsigned int whence);
 		void *stuff2;
@@ -25,12 +25,12 @@ struct CFile100 {
 struct CFile42 {
 	struct {
 		void *stuff0[5];
-		size_t (__fastcall *GetPosition)(struct CFile *);
+		DWORD (__fastcall *GetPosition)(struct CFile *);
 		void *stuff1[6];
-		unsigned long long (__fastcall *Seek)(struct CFile *, void *_, long long off, unsigned int whence);
+		LONG (__fastcall *Seek)(struct CFile *, void *_, LONG off, UINT whence);
 		void *stuff2;
-		unsigned long long (__fastcall *GetLength)(struct CFile *);
-		size_t (__fastcall *Read)(struct CFile *, void *_, void *buf, size_t count);
+		DWORD (__fastcall *GetLength)(struct CFile *);
+		UINT (__fastcall *Read)(struct CFile *, void *_, void *buf, UINT count);
 		// ...
 	} *vtable;
 	// ...
@@ -39,7 +39,7 @@ struct CFile42 {
 unsigned long long __fastcall
 cfseek42(struct CFile *cf, long long off, unsigned int whence)
 {
-	return ((struct CFile42 *)cf)->vtable->Seek(cf, 0, off, whence);
+	return ((struct CFile42 *)cf)->vtable->Seek(cf, 0, (LONG)off, whence);
 }
 
 unsigned long long __fastcall
@@ -63,7 +63,7 @@ cfgetlen100(struct CFile *cf)
 size_t __fastcall
 cfread42(struct CFile *cf, void *buf, size_t count)
 {
-	return ((struct CFile42 *)cf)->vtable->Read(cf, 0, buf, count);
+	return ((struct CFile42 *)cf)->vtable->Read(cf, 0, buf, (UINT)count);
 }
 
 size_t __fastcall
