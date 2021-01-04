@@ -1,23 +1,23 @@
 -module(oor).
--export([read_oor/1, to_ogg/2]).
+-export([read_oor/2, to_ogg/2]).
 
 -include("oor_records.hrl").
 -import(util, [undefined_default/2, ilog2/1]).
 
-read_oor(Data) ->
-	read_oor(Data, []).
-read_oor(<<>>, Pages) ->
+read_oor(Data, SetupDataDir) ->
+	read_oor_(SetupDataDir, Data, []).
+read_oor_(SDataDir, <<>>, Pages) ->
 	Rpages = lists:reverse(Pages),
 	[Info|Rest] = Rpages,
 	[Setup|Sound] = Rest,
 	ParsedInfo = oor_headers:parse_info(Info),
 	io:format("info header ~w~n", [ParsedInfo]),
 	io:format("setup header ~s~n", [oor_headers:format_setup(Setup)]),
-	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup), Setup}, Sound};
-read_oor(Data, Pages) ->
+	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup, SDataDir), Setup}, Sound};
+read_oor_(SDataDir, Data, Pages) ->
 	{F, NextData} = oor_framing:read_page(Data),
 	io:format("~s~n", [oor_framing:format_page(F)]),
-	read_oor(NextData, [F|Pages]).
+	read_oor_(SDataDir, NextData, [F|Pages]).
 
 segment_pktlens(Pktlens) ->
 	segment_pktlens(Pktlens, []).

@@ -5,14 +5,14 @@ main([]) ->
 main(Filenames) ->
 	io:setopts([{encoding, unicode}]),
 	true = code:add_patha(filename:join([filename:dirname(escript:script_name()), "erl"])),
-	process(Filenames).
+	process(Filenames, filename:join([filename:dirname(escript:script_name()), "data"])).
 
-process([Filename|Rest]) ->
+process([Filename|Rest], SetupDataDir) ->
 	io:format("processing ~ts~n", [Filename]),
 	{ok, Data} = file:read_file(Filename),
-	Oor = oor:read_oor(Data),
+	Oor = oor:read_oor(Data, SetupDataDir),
 	{ok, File} = file:open([filename:rootname(Filename, ".oor"), ".ogg"], [write]),
 	ok = oor:to_ogg(File, Oor),
-	process(Rest);
-process([]) ->
+	process(Rest, SetupDataDir);
+process([], _) ->
 	ok.

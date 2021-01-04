@@ -1,5 +1,5 @@
 -module(oor_headers).
--export([parse_info/1, parse_setup/1]).
+-export([parse_info/1, parse_setup/2]).
 -export([format_setup/1]).
 
 -include("oor_records.hrl").
@@ -36,10 +36,10 @@ parse_info_unknowns(0, Rest) ->
 parse_info_unknowns(_, <<Unk1:1, Unk2:1, Unk3:7, EndGranulePos:64, Rest/bits>>) ->
 	{{Unk1, Unk2, Unk3, EndGranulePos}, Rest}.
 
-parse_setup({_, _, <<_:2, 0:6, Rest/bytes>>}) ->
+parse_setup({_, _, <<_:2, 0:6, Rest/bytes>>}, _) ->
 	Rest;
-parse_setup({_, _, <<_:2, HeaderNum:6>>}) ->
-	{ok, Header} = file:read_file(io_lib:format("data/setup~2..0w.hdr", [HeaderNum])),
+parse_setup({_, _, <<_:2, HeaderNum:6>>}, DataDir) ->
+	{ok, Header} = file:read_file(filename:join(DataDir, io_lib:format("setup~2..0w.hdr", [HeaderNum]))),
 	Header.
 
 format_setup({_, _, <<_:2, HeaderNum:6, _/bytes>>}) ->
