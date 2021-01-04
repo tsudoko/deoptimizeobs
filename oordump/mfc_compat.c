@@ -8,6 +8,34 @@ unsigned long long (__fastcall *cfseek)(struct CFile *, long long off, unsigned 
 unsigned long long (__fastcall *cfgetlen)(struct CFile *);
 size_t (__fastcall *cfread)(struct CFile *, void *buf, size_t count);
 
+struct CFile100 {
+	struct {
+		void *stuff0[5];
+		size_t (__fastcall *GetPosition)(struct CFile *);
+		void *stuff1[7];
+		unsigned long long (__fastcall *Seek)(struct CFile *, void *_, long long off, unsigned int whence);
+		void *stuff2;
+		unsigned long long (__fastcall *GetLength)(struct CFile *);
+		size_t (__fastcall *Read)(struct CFile *, void *_, void *buf, size_t count);
+		// ...
+	} *vtable;
+	void *stuff[6];
+};
+
+struct CFile42 {
+	struct {
+		void *stuff0[5];
+		size_t (__fastcall *GetPosition)(struct CFile *);
+		void *stuff1[6];
+		unsigned long long (__fastcall *Seek)(struct CFile *, void *_, long long off, unsigned int whence);
+		void *stuff2;
+		unsigned long long (__fastcall *GetLength)(struct CFile *);
+		size_t (__fastcall *Read)(struct CFile *, void *_, void *buf, size_t count);
+		// ...
+	} *vtable;
+	// ...
+};
+
 unsigned long long __fastcall
 cfseek42(struct CFile *cf, long long off, unsigned int whence)
 {
