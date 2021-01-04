@@ -11,7 +11,7 @@ process([Filename|Rest]) ->
 	io:format("processing ~ts~n", [Filename]),
 	{ok, Data} = file:read_file(Filename),
 	Oor = oor:read_oor(Data),
-	{ok, File} = file:open([Filename, ".ogg"], [write]),
+	{ok, File} = file:open([filename:rootname(Filename, ".oor"), ".ogg"], [write]),
 	ok = oor:to_ogg(File, Oor),
 	process(Rest);
 process([]) ->
