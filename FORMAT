@@ -1,8 +1,8 @@
-COptimizedObs is an audio container used in âge's rUGP engine.
+OptimizedObs is an audio container used in âge's rUGP engine.
 The "reference implementation" of the format is the riooor.rpo
 plugin file distributed with many titles based on rUGP.
 
-COptimizedObs is based on Ogg Vorbis. The audio stream is 100%
+OptimizedObs is based on Ogg Vorbis. The audio stream is 100%
 compatible with Vorbis. The encapsulation format is a heavily
 modified version of Ogg, similar in high-level structure but
 more tightly packed than regular Ogg and without the packet
