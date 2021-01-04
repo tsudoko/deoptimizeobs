@@ -4,7 +4,7 @@ main([]) ->
 	io:format("gimme filenames~n");
 main(Filenames) ->
 	io:setopts([{encoding, unicode}]),
-	true = code:add_patha(filename:join([filename:dirname(escript:script_name()), "erl"])),
+	true = code:add_patha(filename:join([filename:dirname(escript:script_name()), "src"])),
 	process(Filenames, filename:join([filename:dirname(escript:script_name()), "data"])).
 
 process([Filename|Rest], SetupDataDir) ->
