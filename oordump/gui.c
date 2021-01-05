@@ -82,6 +82,12 @@ is_dumping_enabled(void)
 	return IsDlgButtonChecked(maindlg, IDBTN_DUMP) == BST_CHECKED;
 }
 
+_Bool
+is_oneshot_enabled(void)
+{
+	return IsDlgButtonChecked(maindlg, IDBTN_ONESHOT) == BST_CHECKED;
+}
+
 void
 gui_setstatus(char *s)
 {

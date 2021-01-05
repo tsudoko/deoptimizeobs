@@ -94,6 +94,8 @@ fin2:
 fin1:
 	gui_enable();
 	gui_resetstatus();
+	if(is_oneshot_enabled())
+		disable_dumping();
 fin0:
 	original_oor_serialize(that, _, pmarchive);
 }
