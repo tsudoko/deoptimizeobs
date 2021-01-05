@@ -135,7 +135,7 @@ PluginThisLibrary(void)
 	HMODULE riooor_base;
 	struct COptimizedObs_vtable1 *vtable;
 
-	if((riooor_base = GetModuleHandle("riooor.rpo")) == NULL) {
+	if((riooor_base = GetModuleHandle("riooor.rpo")) == NULL && (riooor_base = GetModuleHandle(NULL)) == NULL) {
 		MessageBoxError(NULL, GetLastError(), "Failed to get riooor.rpo module handle");
 		return NULL;
 	}

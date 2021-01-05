@@ -33,7 +33,7 @@ _Bool
 setup_rugp_compat(void)
 {
 	HMODULE univui_base = GetModuleHandleA("UnivUI");
-	if(univui_base == NULL)
+	if(univui_base == NULL && (univui_base = GetModuleHandleA(NULL)) == NULL)
 		return 0;
 
 	long long ts = module_timestamp(univui_base);
