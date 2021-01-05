@@ -53,9 +53,11 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 
 	memcpy(fpath, outdir, pathn * sizeof (wchar_t));
 	wchar_t *fname = fpath + pathn;
+	int sn = ((rand() & 0xffff) << 16) | (rand() & 0xffff);
+	long long ts = time(NULL);
 
 	/* TODO: figure out if there's a stable-ish way to get offset in rio file */
-	if(swprintf(fname, MAX_PATH-pathn-1-1, L"\\%10ld_%06x.oor", time(NULL), rand()) < 0) {
+	if(swprintf(fname, MAX_PATH-pathn-1-1, L"\\%lld_%08x.oor", ts, sn) < 0) {
 		MessageBoxA(NULL, "Failed to prepare final output path.", NULL, MB_ICONERROR);
 		disable_dumping();
 		goto fin1;
