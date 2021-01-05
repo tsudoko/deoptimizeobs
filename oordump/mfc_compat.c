@@ -2,11 +2,17 @@
 
 #include "rugp.h"
 
-int archive_file_offset = -1;
+static int archive_file_offset = -1;
 
 unsigned long long (__fastcall *cfseek)(struct CFile *, long long off, unsigned int whence);
 unsigned long long (__fastcall *cfgetlen)(struct CFile *);
 size_t (__fastcall *cfread)(struct CFile *, void *buf, size_t count);
+
+struct CFile *
+cagetfile(struct CArchive *ca)
+{
+	return ((struct CFile **)ca)[archive_file_offset];
+}
 
 struct CFile100 {
 	struct {

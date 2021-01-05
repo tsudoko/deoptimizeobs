@@ -1,19 +1,11 @@
 /* Rough MFC/rUGP types */
 
+/* MFC */
 struct CFile;
+struct CArchive;
 
-struct CArchive {
-	/* this is obviously incorrect but we only care about
-	   the file member; position of this member changes
-	   between mfc versions */
-	struct CFile *stuff[10];
-};
-
-struct CPmArchive {
-	void *vtable;
-	void *stuff;
-	struct CArchive archive;
-};
+/* rUGP */
+struct CPmArchive;
 
 struct COceanNode {
 	void *obj;

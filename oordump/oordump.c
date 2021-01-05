@@ -30,7 +30,7 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 	if(!is_dumping_enabled())
 		goto fin0;
 
-	struct CFile *cf = cpagetarchive(pmarchive)->stuff[archive_file_offset];
+	struct CFile *cf = cagetfile(cpagetarchive(pmarchive));
 
 	fprintf(stderr, "oor read %p %p\n", that, pmarchive);
 
