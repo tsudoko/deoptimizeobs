@@ -12,4 +12,4 @@ OFILES=oordump.o util.o memranges_win32.o vtable_msvc.o vtable_mfc.o mfc_compat.
 	$(WINDRES) $< $@
 
 $(RPO_NAME): $(OFILES)
-	$(CC) -static-libgcc -shared -o $(RPO_NAME) $(OFILES) $(LIBS) $(LDFLAGS) -lpsapi
+	$(CC) -static-libgcc -shared -o $(RPO_NAME) $(OFILES) $(LIBS) $(LDFLAGS) -lpsapi -lole32

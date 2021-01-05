@@ -1,6 +1,9 @@
 #include <stdio.h>
 
+#define WINNT         0x0601
+#define NTDDI_VERSION 0x06010000
 #include <windows.h>
+#include <objbase.h>
 #include <shlobj.h>
 
 #include "util.h"
@@ -14,19 +17,30 @@ static HWND st_outdir, tt_outdir;
 static _Bool
 gui_select_dir(HWND parent, wchar_t **result)
 {
+	APTTYPEQUALIFIER atq;
+	APTTYPE at;
+	UINT bif_usebetterui;
+	if(CoGetApartmentType(&at, &atq) != S_OK || at == APTTYPE_MTA)
+		bif_usebetterui = BIF_EDITBOX;
+	else
+		bif_usebetterui = BIF_USENEWUI;
+
 	BROWSEINFOW bi = {
 		.hwndOwner = parent,
-		.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI,
+		.ulFlags = BIF_RETURNONLYFSDIRS | bif_usebetterui,
 	};
+
 	PCIDLIST_ABSOLUTE idl;
 	if((idl = SHBrowseForFolderW(&bi)) == NULL)
 		return 0;
 
 	if(!SHGetPathFromIDListW(idl, result)) {
 		MessageBoxA(maindlg, "Failed to convert path.", NULL, MB_ICONERROR);
+		CoTaskMemFree(idl);
 		return 0;
 	}
 
+	CoTaskMemFree(idl);
 	return 1;
 }
 
