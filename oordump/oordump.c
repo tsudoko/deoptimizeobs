@@ -69,7 +69,7 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 	}
 
 	char buf[BUFLEN];
-	size_t ncur, nleft = cfgetlen(cf);
+	unsigned long long ncur, nleft = cfgetlen(cf);
 	while(nleft) {
 		ncur = nleft > BUFLEN ? BUFLEN : nleft;
 		if(cfread(cf, buf, ncur) != ncur) {
