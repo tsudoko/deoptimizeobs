@@ -5,7 +5,7 @@ include config.mk
 RPO_NAME=s_oordump.rpo
 
 CFLAGS=-Wall -gdwarf-2 $(INCLUDES)
-OFILES=oordump.o util.o memranges_win32.o vtable_msvc.o vtable_mfc.o mfc_compat.o gui_res.o gui.o
+OFILES=oordump.o util.o memranges_win32.o vtable_msvc.o vtable_mfc.o mfc_compat.o rugp_compat.o gui_res.o gui.o
 
 .SUFFIXES: .c .o .rc
 .rc.o:

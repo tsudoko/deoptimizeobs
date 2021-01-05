@@ -13,6 +13,7 @@
 #include "vtable_mfc.h"
 #include "rugp.h"
 #include "mfc_compat.h"
+#include "rugp_compat.h"
 #include "gui.h"
 
 #define BUFLEN 4096
@@ -29,7 +30,7 @@ wrapped_oor_serialize(struct COptimizedObs *that, void *_, struct CPmArchive *pm
 	if(!is_dumping_enabled())
 		goto fin0;
 
-	struct CFile *cf = pmarchive->archive.stuff[archive_file_offset];
+	struct CFile *cf = cpagetarchive(pmarchive)->stuff[archive_file_offset];
 
 	fprintf(stderr, "oor read %p %p\n", that, pmarchive);
 
@@ -142,6 +143,9 @@ PluginThisLibrary(void)
 
 	if(!setup_mfc_compat())
 		MessageBoxA(NULL, "Unknown MFC version, you may encounter crashes.", "Warning", MB_ICONWARNING);
+
+	if(!setup_rugp_compat())
+		MessageBoxA(NULL, "Failed to determine rUGP build date, you may encounter crashes.", "Warning", MB_ICONWARNING);
 
 	if((mret = MH_Initialize()) != MH_OK) {
 		MessageBoxSA(NULL, NULL, MB_ICONERROR, "Failed to initialize MinHook: %s", MH_StatusToString(mret));
