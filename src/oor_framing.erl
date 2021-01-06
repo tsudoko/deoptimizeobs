@@ -34,14 +34,13 @@ format_page_header(FH) ->
 		FH#page_header.basepktsize,
 		FH#page_header.vlenbits]).
 
-read_page_header(<<0:2, Rest/bits>>) ->
-	read_page_header_(#page_header{}, <<0:2, Rest/bits>>);
+read_page_header(<<0:2, Flags0:4, Rest/bits>>) ->
+	read_page_header_(#page_header{flags= <<0:2, Flags0:4>>}, Rest);
 read_page_header(<<Ver:2, Flags0:4, _:2, GranulePos:64, _:6, Rest/bits>>) ->
-	read_page_header_(#page_header{granulepos=GranulePos}, <<Ver:2, Flags0:4, Rest/bits>>).
-read_page_header_(H, <<Ver:2, Flags0:2, Bos:1, Flags1:1, Setup0:7, RateSel:2, Setup1Stuff/bits>>) when Bos =:= 1 ->
+	read_page_header_(#page_header{flags= <<Ver:2, Flags0:4>>, granulepos=GranulePos}, Rest).
+read_page_header_(H = #page_header{flags = <<Ver:2, _:2, Bos:1, _:1>>}, Rest) when Bos =:= 1 ->
 	% info header, special case, size needs to be inferred from the packet contents
-	Flags = <<Ver:2, Flags0:2, Bos:1, Flags1:1>>,
-	Rest = <<Setup0:7, RateSel:2, Setup1Stuff/bits>>,
+	<<_:7, RateSel:2, _/bits>> = Rest,
 	{H#page_header{
 		vlenbits = 0,
 		npkt = 1,
@@ -50,9 +49,8 @@ read_page_header_(H, <<Ver:2, Flags0:2, Bos:1, Flags1:1, Setup0:7, RateSel:2, Se
 			% extended sample rate
 			if RateSel >= 3 -> 1; true -> 0 end +
 			% final granulepos, some unknowns
-			if Ver > 0 -> 10; true -> 0 end,
-		flags = Flags}, Rest};
-read_page_header_(H, <<Ver:2, Flags0:4, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Stuff/bits>>) ->
+			if Ver > 0 -> 10; true -> 0 end}, Rest};
+read_page_header_(H, <<VlenBits:4, _:1, Npkt:8, BasePktSizeSel:2, Stuff/bits>>) ->
 	PktSizeSize = case BasePktSizeSel of
 		0 -> 0;
 		1 -> 8;
@@ -60,7 +58,7 @@ read_page_header_(H, <<Ver:2, Flags0:4, VlenBits:4, _:1, Npkt:8, BasePktSizeSel:
 		% 3 is undefined
 	end,
 	<<BasePktSize:PktSizeSize, Rest/bits>> = Stuff,
-	{H#page_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize, flags= <<Ver:2, Flags0:4>>}, Rest}.
+	{H#page_header{vlenbits=VlenBits, npkt=Npkt, basepktsize=BasePktSize}, Rest}.
 
 read_packet_lengths(H, Data) ->
 	read_packet_lengths(H, Data, H#page_header.npkt, []).
