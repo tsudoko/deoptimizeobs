@@ -41,7 +41,7 @@ char *
 mfc_vtable_classname(void *v)
 {
 	unsigned char *g = ((unsigned char **)v)[0];
-	struct CRuntimeClass *rtc = (void *)(g[1] | (g[2] << 8) | (g[3] << 16) | (g[4] << 24));
+	struct CRuntimeClass *rtc = *((struct CRuntimeClass **)g+1);
 	return rtc->name;
 }
 
@@ -68,7 +68,7 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t *
 			continue;
 		if(g[0] != MOV_R32_IMM32 || g[5] != RET)
 			continue;
-		struct CRuntimeClass *rtc = (void *)(g[1] | (g[2] << 8) | (g[3] << 16) | (g[4] << 24));
+		struct CRuntimeClass *rtc = *((struct CRuntimeClass **)g+1);
 		if(!is_rtc_candidate(r, rtc))
 			continue;
 
