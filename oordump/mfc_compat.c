@@ -85,7 +85,9 @@ check_mfc_version(void)
 	if(v)
 		return v;
 
-	if(GetModuleHandleA("mfc100"))
+	if(GetModuleHandleA("mfc140") || GetModuleHandleA("mfc140u"))
+		v = 140;
+	else if(GetModuleHandleA("mfc100"))
 		v = 100;
 	else if(GetModuleHandleA("mfc42"))
 		v = 42;
@@ -110,6 +112,7 @@ setup_mfc_compat(void)
 		cfread = cfread42;
 		return 1;
 	case 100:
+	case 140:
 		mfc_found = 1;
 		/* fallthrough */
 	default:
