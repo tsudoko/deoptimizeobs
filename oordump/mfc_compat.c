@@ -11,6 +11,9 @@ size_t (__fastcall *cfread)(struct CFile *, void *buf, size_t count);
 struct CFile *
 cagetfile(struct CArchive *ca)
 {
+	/* public symbol numbers change between major versions anyway so it's not like
+	   we'd gain anything from using CArchive::GetFile instead of getting the file
+	   object directly */
 	return ((struct CFile **)ca)[archive_file_offset];
 }
 
@@ -101,9 +104,6 @@ _Bool
 setup_mfc_compat(void)
 {
 	_Bool mfc_found = 0;
-	/* public symbol numbers change between major versions anyway so it's not like
-	   we'd gain anything from using CArchive::GetFile instead of getting the file
-	   object directly */
 	switch(check_mfc_version()) {
 	case 42:
 		archive_file_offset = 8;
