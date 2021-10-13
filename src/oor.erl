@@ -14,6 +14,9 @@ read_oor_(SDataDir, <<>>, Pages) ->
 	io:format("info header ~w~n", [ParsedInfo]),
 	io:format("setup header ~s~n", [oor_headers:format_setup(Setup)]),
 	{{ParsedInfo, Info}, {oor_headers:parse_setup(Setup, SDataDir), Setup}, Sound};
+read_oor_(SDataDir, _, Pages=[{#page_header{flags= <<_:5, 1:1>>}, _, _}|_]) ->
+	% ignore trailing garbage past the eos page
+	read_oor_(SDataDir, <<>>, Pages);
 read_oor_(SDataDir, Data, Pages) ->
 	{F, NextData} = oor_framing:read_page(Data),
 	io:format("~s~n", [oor_framing:format_page(F)]),
