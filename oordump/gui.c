@@ -70,12 +70,6 @@ tooltip_init(HMODULE module, HWND control, HWND parent, wchar_t *text)
 	return tooltip;
 }
 
-void
-disable_dumping(void)
-{
-	CheckDlgButton(maindlg, IDBTN_DUMP, BST_UNCHECKED);
-}
-
 _Bool
 is_dumping_enabled(void)
 {
@@ -103,6 +97,13 @@ void
 gui_resetstatus(void)
 {
 	gui_setstatus(is_dumping_enabled() ? "idle" : "off");
+}
+
+void
+disable_dumping(void)
+{
+	CheckDlgButton(maindlg, IDBTN_DUMP, BST_UNCHECKED);
+	gui_resetstatus();
 }
 
 static void
