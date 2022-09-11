@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <windows.h>
 #include <tchar.h>
 
@@ -12,14 +14,14 @@ load_plugin(TCHAR *libname)
 		/* TODO: show LastError? */
 		return NULL;
 	}
-	MessageBox(NULL, TEXT("LoadLibrary successful"), NULL, 0);
+	fputs("LoadLibrary successful\n", stderr);
 
 	FARPROC fp = GetProcAddress(lib, TEXT("PluginThisLibrary"));
 	if(fp == NULL) {
 		/* TODO: show LastError? */
 		return NULL;
 	}
-	MessageBox(NULL, TEXT("found PluginThisLibrary"), NULL, 0);
+	fputs("found PluginThisLibrary\n", stderr);
 
 	lib_PluginThisLibrary = (void *(*)(void))fp;
 	return lib_PluginThisLibrary();
@@ -35,7 +37,7 @@ load_rpo_files(void)
 	f = FindFirstFile(TEXT("Plugins\\*.rpo"), &fd);
 	if(f == INVALID_HANDLE_VALUE)
 		return;
-	MessageBox(NULL, TEXT("found rpo file"), NULL, 0);
+	fputs("found rpo file\n", stderr);
 	size_t plen = _tcslen(TEXT("Plugins\\"));
 	TCHAR path[MAX_PATH], *pathfile = path + plen;
 	_tcscpy(path, TEXT("Plugins\\"));
@@ -51,7 +53,7 @@ load_rpo_files(void)
 			/* TODO: show "path buffer not big enough"? */
 			return;
 		}
-		MessageBox(NULL, path, NULL, 0);
+		_ftprintf(stderr, TEXT("%s\n"), path);
 		load_plugin(path);
 	}
 
