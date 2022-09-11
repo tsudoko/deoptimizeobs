@@ -21,7 +21,8 @@ Build the plugin, put in `[game directory]/Plugins`, run the game.
 How to build (MinGW)
 --------------------
 
-Copy `config.def.mk` to `config.mk`, adjust settings as needed, run `make`.
+Make sure you've built MinHook first, copy `config.def.mk` to `config.mk`,
+adjust settings as needed, run `make`.
 
 How to build (MSVC)
 -------------------
