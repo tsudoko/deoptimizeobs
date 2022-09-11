@@ -125,7 +125,7 @@ find_coptimizedobs_vtable(HMODULE riooor_base)
 __declspec(dllexport) const char *
 GetPluginString(void)
 {
-	return "s_oordump.rpo Version 0.01.00\n\tCOptimizedObs dumper plugin\n\tPublic domain.";
+	return "s_oordump.rpo Version 0.01.01\n\tCOptimizedObs dumper plugin\n\tPublic domain.";
 }
 
 __declspec(dllexport) void *
