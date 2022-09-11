@@ -16,6 +16,10 @@ How to set up
 Put the `s_oordump.rpo` file in `[game directory]/Plugins`, run the game.
 Make sure to set the output path before dumping.
 
+**For AGES 7.0 and up:** if your game doesn't have a Plugins directory,
+you might need to use rpoloader (present in this repo) or inject the rpo
+file into the running process (currently unimplemented).
+
 Usage
 -----
 
