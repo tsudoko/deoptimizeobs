@@ -68,7 +68,7 @@ find_mfc_vtable(struct memranges r, char *classname, size_t nclassname, size_t *
 			continue;
 		if(g[0] != MOV_R32_IMM32 || g[5] != RET)
 			continue;
-		struct CRuntimeClass *rtc = *((struct CRuntimeClass **)g+1);
+		struct CRuntimeClass *rtc = *(struct CRuntimeClass **)(g+1);
 		if(!is_rtc_candidate(r, rtc))
 			continue;
 
