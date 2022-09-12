@@ -17,5 +17,5 @@ How to build (MinGW)
 --------------------
 
 ```
-i686-w64-mingw32-gcc rpoloader.c -static-libgcc -shared -o Ages3ResT.dll
+i686-w64-mingw32-gcc -static-libgcc -shared -o Ages3ResT.dll util.c rpoloader.c
 ```

@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <tchar.h>
 
+#include "util.h"
+
 #define LIBNAME "Ages3ResT"
 
 void *
@@ -11,14 +13,14 @@ load_plugin(TCHAR *libname)
 	void *(*lib_PluginThisLibrary)(void);
 	HMODULE lib = LoadLibrary(libname);
 	if(lib == NULL) {
-		/* TODO: show LastError? */
+		MessageBoxError(NULL, GetLastError(), "LoadLibrary");
 		return NULL;
 	}
 	fputs("LoadLibrary successful\n", stderr);
 
 	FARPROC fp = GetProcAddress(lib, TEXT("PluginThisLibrary"));
 	if(fp == NULL) {
-		/* TODO: show LastError? */
+		MessageBoxError(NULL, GetLastError(), "GetProcAddress(..., \"PluginThisLibrary\")");
 		return NULL;
 	}
 	fputs("found PluginThisLibrary\n", stderr);
@@ -47,10 +49,10 @@ load_rpo_files(void)
 		/* XXX: not sure if passing the same pointer to both is valid */
 		DWORD n = GetFullPathName(path, (sizeof path)/(sizeof *path), path, NULL);
 		if(n == 0) {
-			/* TODO: show LastError? */
+			MessageBoxError(NULL, GetLastError(), "GetFullPathName");
 			return;
 		} else if(n >= sizeof path) {
-			/* TODO: show "path buffer not big enough"? */
+			MessageBoxSA(NULL, NULL, 0, "Plugin path too long");
 			return;
 		}
 		_ftprintf(stderr, TEXT("%s\n"), path);
